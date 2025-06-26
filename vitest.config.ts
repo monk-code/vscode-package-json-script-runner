@@ -7,7 +7,7 @@ export default defineConfig({
     include: ['src/**/*.spec.ts'],
     coverage: {
       reporter: ['text', 'json', 'html'],
-      exclude: ['node_modules/', 'test-workspace/', '.vscode-test/', 'out/']
-    }
-  }
+      exclude: ['node_modules/', 'test-workspace/', '.vscode-test/', 'out/'],
+    },
+  },
 })

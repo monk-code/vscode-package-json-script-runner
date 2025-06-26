@@ -22,5 +22,11 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "exclude": ["node_modules", ".vscode-test", "out", "test-workspace", "vitest.config.ts"]
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    "out",
+    "test-workspace",
+    "vitest.config.ts"
+  ]
 }

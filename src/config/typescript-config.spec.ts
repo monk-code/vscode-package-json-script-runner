@@ -7,7 +7,7 @@ describe('TypeScript Configuration', () => {
     const tsconfigPath = join(__dirname, '../../tsconfig.json')
     const tsconfigContent = readFileSync(tsconfigPath, 'utf-8')
     const tsConfig = JSON.parse(tsconfigContent)
-    
+
     expect(tsConfig.compilerOptions.strict).toBe(true)
     expect(tsConfig.compilerOptions.noImplicitAny).toBe(true)
     expect(tsConfig.compilerOptions.strictNullChecks).toBe(true)

@@ -6,21 +6,21 @@ describe('Vitest Configuration', () => {
   test('should use spec.ts naming convention', async () => {
     const vitestConfigPath = join(__dirname, '../../vitest.config.ts')
     expect(existsSync(vitestConfigPath)).toBe(true)
-    
+
     // Import the config dynamically
     const config = await import(vitestConfigPath)
     const testConfig = config.default.test
-    
+
     expect(testConfig).toBeDefined()
     expect(testConfig.include).toBeDefined()
     expect(testConfig.include).toContain('src/**/*.spec.ts')
   })
-  
+
   test('should have proper test environment configured', async () => {
     const vitestConfigPath = join(__dirname, '../../vitest.config.ts')
     const config = await import(vitestConfigPath)
     const testConfig = config.default.test
-    
+
     expect(testConfig.globals).toBe(true)
     expect(testConfig.environment).toBe('node')
   })
