@@ -1,10 +1,46 @@
 {
   "name": "vscode-package-json-script-runner",
+  "displayName": "Package.json Script Runner",
+  "description": "Run package.json scripts from any package in your monorepo with fuzzy search",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "publisher": "bright-energy",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bright-energy/vscode-package-json-script-runner.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bright-energy/vscode-package-json-script-runner/issues"
+  },
+  "homepage": "https://github.com/bright-energy/vscode-package-json-script-runner#readme",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:vscode-package-json-script-runner.runScript"
+  ],
+  "main": "./out/extension/extension.js",
   "type": "module",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vscode-package-json-script-runner.runScript",
+        "title": "Run Package Script",
+        "category": "Package Scripts"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "vscode-package-json-script-runner.runScript",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r"
+      }
+    ]
+  },
   "scripts": {
+    "build": "tsc -p .",
     "test": "vitest run",
     "test:watch": "vitest",
     "types:check": "tsc --noEmit",
@@ -14,13 +50,28 @@
     "format:fix": "biome format --write .",
     "validate": "run-s types:check lint format test"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "monorepo",
+    "package.json",
+    "scripts",
+    "npm",
+    "pnpm",
+    "yarn",
+    "workspace",
+    "fuzzy search",
+    "productivity",
+    "development"
+  ],
+  "author": "Bright Energy Development Team",
+  "license": "MIT",
   "packageManager": "pnpm@10.4.1",
+  "dependencies": {
+    "fuse.js": "^7.1.0"
+  },
   "devDependencies": {
     "@biomejs/biome": "^2.0.5",
     "@types/node": "^24.0.4",
+    "@types/vscode": "^1.101.0",
     "npm-run-all2": "^8.0.4",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"

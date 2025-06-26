@@ -1,105 +1,147 @@
 # Critical Code Review
 
-## 1. Import Ordering Violation ❌
+## 1. ❌ Import Ordering Violation
 
-**Location:** `src/__tests__/config/biome-config.spec.ts`
+**Location:** `src/__tests__/extension/extension.spec.ts`
 
 ```typescript
 // Current (INCORRECT):
-import { existsSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { describe, expect, test } from 'vitest'
+import { describe, test, expect, vi } from 'vitest'
+
+// Mock vscode before importing extension
+vi.mock('vscode', () => ({...}))
 
 // Should be:
-import { describe, expect, test } from 'vitest'
-import { existsSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { describe, test, expect, vi } from 'vitest'
+
+// Mock must be hoisted before any imports that use it
+vi.mock('vscode', () => ({...}))
 ```
 
-**Violation:** According to CLAUDE.md's Package Import Hierarchy, external dependencies (vitest) must come before Node.js built-ins. The current ordering violates this rule.
+The import order is correct, but there's a subtle issue: the mock needs to be hoisted above all imports, which Vitest handles automatically.
 
-## 2. Project Structure Issues 🚨
+**Location:** `src/extension/extension.ts`
 
-### Test Location Contradiction
-**Issue:** Tests are located in `src/__tests__/` but CLAUDE.md explicitly states:
-- "Use the `ai-workspace` or `ai` folder for temporary files"
-- "Source code locations: Packages: Source code goes in the /lib folder"
-
-The test location doesn't align with the monorepo structure described in CLAUDE.md which shows tests should be alongside their packages.
-
-## 3. Missing Path Alias Configuration ⚠️
-
-**Issue:** The project uses TypeScript but there's no evidence of path alias configuration (`#/`) as required by CLAUDE.md:
 ```typescript
-import { useBlueprintSelector } from '#/use-blueprint-selector.ts'  // Expected format
+// Current (INCORRECT):
+import * as vscode from 'vscode'
+
+import { discoverPackages } from '#/package-discovery/discover-packages.js'
+import { showScriptPicker } from '#/script-quick-pick/show-script-picker.js'
+
+// Should be:
+import * as vscode from 'vscode'
+import { discoverPackages } from '#/package-discovery/discover-packages.js'
+import { showScriptPicker } from '#/script-quick-pick/show-script-picker.js'
 ```
 
-## 4. Lack of TDD Evidence ❌
+Extra blank line between external and local imports violates the import hierarchy rules.
 
-**Critical Violation:** CLAUDE.md states "TEST-DRIVEN DEVELOPMENT IS NON-NEGOTIABLE" and "Every single line of production code must be written in response to a failing test."
+## 2. ❌ TDD Violation - CRITICAL
 
-The current test file only verifies the existence of a configuration file, which suggests:
-- Production code (biome configuration) was written before tests
-- Tests were written after the fact to validate existing configuration
+**Severity:** CRITICAL - Direct violation of non-negotiable principle
 
-## 5. Git Ignore Issues 📝
+The test file only tests that functions exist, not their behavior. This suggests:
+- Production code was written first without failing tests
+- Tests were added after implementation
+- No evidence of Red-Green-Refactor cycle
 
-### Redundant Entries
-```diff
-.env
-.env.local
+CLAUDE.md states: "TEST-DRIVEN DEVELOPMENT IS NON-NEGOTIABLE. Every single line of production code must be written in response to a failing test."
+
+## 3. ❌ Functional Programming Violations
+
+**Location:** `src/extension/extension.ts`
+
+```typescript
+// Violation: Not using const arrow functions
+export const activate = (context: vscode.ExtensionContext): void => {
+  // Side effects without explicit documentation
+  context.subscriptions.push(disposable)
+}
 ```
-These could be simplified to `.env*` for better maintainability.
 
-### Project-Specific Entries
+While the code uses arrow functions correctly, it has unavoidable side effects (required by VS Code API) that aren't explicitly documented as required by CLAUDE.md.
+
+## 4. ⚠️ Incomplete Test Coverage
+
+The test only verifies:
+- Functions are defined
+- `push` is called on subscriptions
+
+It doesn't test:
+- Command registration with correct ID
+- Error handling when no workspace folders exist
+- Success flow when packages are discovered
+- Error flow when package discovery fails
+- Script picker integration
+
+## 5. ❌ Type Safety Issues
+
+```typescript
+// Weak typing in test mock
+const mockContext = {
+  subscriptions: {
+    push: vi.fn(),
+  },
+} as unknown as import('vscode').ExtensionContext
 ```
-test-workspace/packages/broken-package/
-review.md
+
+Using `as unknown as` is a type assertion that violates the "No type assertions" rule. Should create a proper mock that satisfies the interface.
+
+## 6. ⚠️ Error Handling
+
+```typescript
+vscode.window.showErrorMessage(
+  `Error discovering packages: ${String(error)}`
+)
 ```
-These seem like temporary or project-specific files that might belong in a global `.gitignore` rather than the project's.
 
-## 6. Security Considerations 🔒
+Using `String(error)` loses error context. Should properly handle error types and provide meaningful messages.
 
-No immediate security vulnerabilities detected in the changes.
+## 7. ✅ No Unnecessary Comments
 
-## 7. Performance Considerations ⚡
+Good adherence to "no comments" rule. Code is self-documenting.
 
-No performance issues in the current changes.
+## 8. ⚠️ Missing Edge Cases
 
-## 8. Code Style & Best Practices
+- What if multiple workspace folders exist?
+- What if package discovery returns empty array?
+- What if user cancels the script picker?
+- Race conditions if command is triggered multiple times?
 
-### Positive Aspects ✅
-- Using `node:` prefix for Node.js modules (correct per CLAUDE.md)
-- Test file naming follows `*.spec.ts` convention
+## 9. 📝 Package.json Issues
 
-### Missing Functional Programming Style ❌
-The test doesn't demonstrate the required functional programming approach:
-- No use of composition
-- No demonstration of pure functions
-- No evidence of immutable data handling
+### Missing Required Fields
+- `repository` field
+- `keywords` field
+- `icon` field (recommended for VS Code extensions)
+- `license` field
+- Proper `publisher` value (currently placeholder)
 
-## 9. Edge Cases & Error Handling ⚠️
+### Dependency Issues
+- `fuse.js` is listed as devDependency but likely needed at runtime
+- Missing `@vscode/test-electron` for proper VS Code extension testing
 
-The test only checks for file existence but doesn't:
-- Validate the JSON structure
-- Handle malformed JSON
-- Verify the configuration actually works with Biome
+## 10. ❌ Project Structure Violation
 
-## 10. Documentation & Comments ✅
+Test files in `src/__tests__/` but CLAUDE.md specifies:
+- Packages: `/lib` folder
+- Apps: `/src` folder
 
-Good: No unnecessary comments present. Code is self-documenting through clear test descriptions.
+This suggests incorrect project structure for the monorepo pattern described.
 
 ## Summary
 
-**Critical Issues:**
-1. Import ordering violation
-2. Violation of TDD principles (most severe)
-3. Project structure doesn't align with monorepo guidelines
-4. Missing required TypeScript path alias configuration
+### Critical Issues:
+1. **TDD Violation** - No evidence of test-first development
+2. **Insufficient Test Coverage** - Tests don't verify behavior
+3. **Type Assertions** - Using `as unknown as` violates strict TypeScript rules
+4. **Import Formatting** - Extra blank lines in imports
 
-**Recommendations:**
-1. Fix import ordering immediately
-2. Restructure project to follow monorepo pattern from CLAUDE.md
-3. Configure path aliases in `tsconfig.json` and `vitest.config.ts`
-4. Adopt strict TDD: write failing tests first, then implementation
-5. Enhance tests to validate behavior, not just file existence
+### Recommendations:
+1. Rewrite using strict TDD - start with failing behavioral tests
+2. Remove type assertions, create proper mocks
+3. Add comprehensive error handling tests
+4. Fix import formatting
+5. Update package.json with required fields
+6. Consider project structure alignment with monorepo guidelines
