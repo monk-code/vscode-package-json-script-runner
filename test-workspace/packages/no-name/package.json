@@ -1,0 +1,7 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo 'testing'"
+  },
+  "description": "Package without name field"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "@test/no-scripts",
+  "version": "1.0.0",
+  "description": "Package without scripts field"
+}
