@@ -1,0 +1,12 @@
+{
+  "name": "@test/web-app",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "preview": "next build && next start"
+  },
+  "description": "Next.js web application"
+}

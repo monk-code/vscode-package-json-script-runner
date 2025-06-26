@@ -1,0 +1,12 @@
+{
+  "name": "@test/ui-components",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "storybook": "storybook dev"
+  },
+  "description": "UI component library for the test monorepo"
+}

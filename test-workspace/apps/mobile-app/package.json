@@ -1,0 +1,12 @@
+{
+  "name": "@test/mobile-app",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "build": "expo build"
+  },
+  "description": "React Native mobile application"
+}

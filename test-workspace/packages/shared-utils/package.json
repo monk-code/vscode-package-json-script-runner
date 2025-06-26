@@ -1,0 +1,10 @@
+{
+  "name": "@test/shared-utils",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "lint": "eslint src/**/*.ts"
+  },
+  "description": "Shared utilities package"
+}
