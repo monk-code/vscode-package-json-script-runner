@@ -44,20 +44,32 @@ Modern JavaScript monorepos (using tools like pnpm workspaces, Yarn workspaces, 
 
 ## Current Status
 
-### ✅ Completed (Phase 1 Foundation)
+### ✅ Completed (Phase 1 Foundation & Discovery)
 - **Project Setup**: VS Code extension scaffold with TypeScript and ES modules
 - **TDD Infrastructure**: Vitest configured with .spec.ts naming convention and globals
 - **TypeScript Configuration**: Strict mode with comprehensive type checking (noImplicitAny, strictNullChecks, etc.)
+- **Path Aliases**: Configured `#/` alias for cleaner imports
 - **Code Quality**: Biome setup for linting and formatting with custom rules
 - **Validation Pipeline**: `pnpm validate` command running types:check → lint → format → test
-- **Test Workspace**: Complete monorepo structure with 7 packages for testing
+- **Test Workspace**: Complete monorepo structure with 9+ packages for testing
 - **Git Setup**: Repository initialized with proper .gitignore and commit history
 
+### ✅ Completed (Phase 1.2 - Script Discovery Engine)
+- **Package Discovery**: Functional implementation that recursively finds all package.json files
+- **Exclusion Logic**: Automatically excludes node_modules directories
+- **Script Extraction**: Parses and extracts npm scripts from each package.json
+- **Error Handling**: Gracefully handles malformed JSON and missing fields
+- **Package Context**: Includes package name and relative path in results
+- **Workspace Root Detection**: Dynamic detection of monorepo root via workspaces field
+- **Functional Programming**: Refactored to use map/filter/reduce patterns
+- **Type Safety**: Full TypeScript types with Dirent for file system operations
+- **Edge Cases**: Handles missing scripts and name fields appropriately
+- **Test Coverage**: 16 tests covering all discovery scenarios
+
 ### 🔄 In Progress
-- **Phase 1.2**: Package discovery engine implementation (next step)
+- **Phase 2**: QuickPick UI with fuzzy search integration (next step)
 
 ### 📋 Pending
-- **Phase 2**: QuickPick UI with fuzzy search integration
 - **Phase 3**: Script execution engine with terminal management
 - **Phase 4**: Performance optimizations (caching, file watching)
 - **Phase 5**: Enhanced features (recent scripts, favorites)
@@ -95,47 +107,22 @@ This project will be executed following a strict Test-Driven Development (TDD) m
 6. ✅ Created comprehensive test workspace with 7 monorepo packages
 7. ✅ Initialized Git repository with proper .gitignore
 
-#### Step 1.2: Script Discovery Engine 🔄 NEXT STEP
+#### Step 1.2: Script Discovery Engine ✅ COMPLETED
 **Business Value**: Core feature that enables all other functionality
 
-**TDD Implementation (Red-Green-Refactor):**
+**Implementation Summary:**
+- ✅ Created `discoverPackages` function with recursive directory traversal
+- ✅ Returns `PackageInfo` objects with path, name, relativePath, and scripts
+- ✅ Excludes node_modules directories automatically
+- ✅ Handles malformed JSON and missing fields gracefully
+- ✅ Uses functional programming patterns (map, filter, Promise.all)
+- ✅ Dynamic workspace root detection via package.json workspaces field
+- ✅ Full test coverage with 8 comprehensive test cases
 
-**Red Phase:**
-```typescript
-// Write failing test first
-describe('Script Discovery', () => {
-  test('discovers all executable scripts across monorepo', async () => {
-    const scripts = await discoverScripts(mockWorkspace)
-    expect(scripts).toContainEqual({
-      name: 'build',
-      package: '@mycompany/ui-components',
-      path: '/packages/ui-components',
-      command: 'vite build'
-    })
-  })
-  
-  test('excludes node_modules directories', async () => {
-    const scripts = await discoverScripts(mockWorkspaceWithNodeModules)
-    expect(scripts.every(s => !s.path.includes('node_modules'))).toBe(true)
-  })
-  
-  test('handles malformed package.json gracefully', async () => {
-    const scripts = await discoverScripts(mockWorkspaceWithInvalidJson)
-    expect(scripts).toBeDefined()
-    // Should not throw
-  })
-})
-```
-
-**Green Phase:**
-- Implement `discoverScripts` function using glob pattern `**/package.json`
-- Parse JSON and extract scripts object
-- Return structured list of script objects
-
-**Refactor Phase:**
-- Handle errors gracefully for malformed JSON
-- Optimize file reading with async/await
-- Improve data structure clarity
+**Key Files Created:**
+- `src/package-discovery/discover-packages.ts` - Main discovery logic
+- `src/types/package-info.ts` - TypeScript interface for package data
+- `src/__tests__/package-discovery/discover-packages.spec.ts` - Test suite
 
 ### Phase 2: User Experience (Week 2)
 
@@ -322,37 +309,50 @@ export type MonorepoScriptRunner = {
 ### Current File Structure
 ```
 src/
+├── __tests__/
+│   ├── config/
+│   │   ├── biome-config.spec.ts       # Biome config tests ✅
+│   │   ├── typescript-config.spec.ts  # TypeScript config tests ✅
+│   │   └── vitest-config.spec.ts      # Vitest config tests ✅
+│   ├── extension/
+│   │   └── extension.spec.ts          # Extension tests ✅
+│   ├── package-discovery/
+│   │   └── discover-packages.spec.ts  # Package discovery tests ✅
+│   └── test-setup/
+│       └── workspace-setup.spec.ts    # Test workspace validation ✅
 ├── extension/
-│   ├── extension.ts          # Entry point ✅
-│   └── extension.spec.ts     # Extension tests ✅
-├── config/
-│   ├── typescript-config.spec.ts  # TypeScript config tests ✅
-│   ├── vitest-config.spec.ts      # Vitest config tests ✅
-│   └── biome-config.spec.ts       # Biome config tests ✅
-├── test-setup/
-│   └── workspace-setup.spec.ts    # Test workspace validation ✅
-├── package-discovery/           # 🔄 NEXT: Package.json scanning
-├── script-quick-pick/          # 📋 PENDING: QuickPick interface
-├── script-execution/           # 📋 PENDING: Terminal management
-├── cache-manager/              # 📋 PENDING: Performance caching
-├── package-manager/            # 📋 PENDING: Detection logic
-├── file-watcher/               # 📋 PENDING: Real-time updates
-└── types/                      # 📋 PENDING: Core types
-    ├── package-info.ts         
-    └── quick-pick-item.ts      
+│   └── extension.ts                   # Entry point ✅
+├── package-discovery/
+│   └── discover-packages.ts           # Package.json scanning ✅
+├── types/
+│   └── package-info.ts                # Core types ✅
+├── script-quick-pick/                 # 📋 NEXT: QuickPick interface
+├── script-execution/                  # 📋 PENDING: Terminal management
+├── cache-manager/                     # 📋 PENDING: Performance caching
+├── package-manager/                   # 📋 PENDING: Detection logic
+└── file-watcher/                      # 📋 PENDING: Real-time updates
 
-test-workspace/                 # ✅ Complete monorepo test structure
-├── package.json                # Root workspace
-├── packages/                   # 3 packages with various scripts
-├── apps/                       # 2 applications
-└── tools/                      # 1 build tools package
+test-workspace/                        # ✅ Complete monorepo test structure
+├── package.json                       # Root workspace with workspaces field
+├── packages/                          # 5+ packages with various scripts
+│   ├── ui-components/
+│   ├── api-server/
+│   ├── shared-utils/
+│   ├── no-scripts/                    # Test case: missing scripts field
+│   ├── no-name/                       # Test case: missing name field
+│   └── broken-package/                # Test case: malformed JSON
+├── apps/                              # 2 applications
+└── tools/                             # 1 build tools package
 
 # Configuration Files ✅
-├── biome.json                  # Linting and formatting rules
-├── tsconfig.json              # TypeScript strict configuration  
-├── vitest.config.ts           # Test configuration
-├── package.json               # Scripts and dependencies
-└── .gitignore                 # Git ignore patterns
+├── biome.json                         # Linting and formatting rules
+├── tsconfig.json                      # TypeScript strict configuration with path aliases
+├── vitest.config.ts                   # Test configuration
+├── package.json                       # Scripts and dependencies
+├── .gitignore                         # Git ignore patterns (optimized)
+├── CLAUDE.md                          # Development guidelines
+├── plan.md                            # This file
+└── review.md                          # Code review feedback
 ```
 
 ### Technologies & Tools Used
@@ -362,8 +362,18 @@ test-workspace/                 # ✅ Complete monorepo test structure
 - **Code Quality**: Biome for linting and formatting
 - **Build Orchestration**: npm-run-all2 for sequential script execution
 - **Module System**: ES modules with node: imports
+- **Path Aliases**: TypeScript `#/` alias for cleaner imports
 - **Git**: Initialized with comprehensive .gitignore
 - **Development Workflow**: TDD with Red-Green-Refactor cycles
+
+### Recent Improvements (from Code Reviews)
+- **Import Ordering**: Fixed to follow external → node → local hierarchy
+- **Path Aliases**: Implemented `#/` alias usage throughout codebase
+- **Edge Case Handling**: Added support for missing `scripts` and `name` fields
+- **Functional Programming**: Refactored from imperative to functional style
+- **Dynamic Path Resolution**: Removed hardcoded paths for better portability
+- **Type Safety**: Eliminated `any` types, using proper Dirent types
+- **Test Coverage**: Expanded from 6 to 16 tests with comprehensive edge cases
 
 ---
 
