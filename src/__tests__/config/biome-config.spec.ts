@@ -4,7 +4,7 @@ import { join } from 'node:path'
 
 describe('Biome Configuration', () => {
   test('should have biome.json configuration file', () => {
-    const biomeConfigPath = join(__dirname, '../../biome.json')
+    const biomeConfigPath = join(__dirname, '../../../biome.json')
     expect(existsSync(biomeConfigPath)).toBe(true)
 
     const biomeConfig = JSON.parse(readFileSync(biomeConfigPath, 'utf-8'))
@@ -14,7 +14,7 @@ describe('Biome Configuration', () => {
   })
 
   test('should have linting and formatting scripts in package.json', () => {
-    const packageJsonPath = join(__dirname, '../../package.json')
+    const packageJsonPath = join(__dirname, '../../../package.json')
     const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
 
     expect(packageJson.scripts.lint).toBeDefined()
@@ -25,7 +25,7 @@ describe('Biome Configuration', () => {
   })
 
   test('validate script should include all checks', () => {
-    const packageJsonPath = join(__dirname, '../../package.json')
+    const packageJsonPath = join(__dirname, '../../../package.json')
     const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
 
     const validateScript = packageJson.scripts.validate

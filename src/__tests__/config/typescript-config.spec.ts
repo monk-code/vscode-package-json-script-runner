@@ -4,7 +4,7 @@ import { join } from 'node:path'
 
 describe('TypeScript Configuration', () => {
   test('should enforce strict mode settings', () => {
-    const tsconfigPath = join(__dirname, '../../tsconfig.json')
+    const tsconfigPath = join(__dirname, '../../../tsconfig.json')
     const tsconfigContent = readFileSync(tsconfigPath, 'utf-8')
     const tsConfig = JSON.parse(tsconfigContent)
 

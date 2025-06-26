@@ -4,7 +4,7 @@ import { join } from 'node:path'
 
 describe('Test Workspace Setup', () => {
   test('should have monorepo test structure', () => {
-    const testWorkspace = join(__dirname, '../../test-workspace')
+    const testWorkspace = join(__dirname, '../../../test-workspace')
 
     // Root package.json
     expect(existsSync(join(testWorkspace, 'package.json'))).toBe(true)
