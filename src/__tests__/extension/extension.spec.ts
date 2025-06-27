@@ -1,40 +1,10 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 import type * as vscode from 'vscode'
-
-// Create proper mocks without type assertions
-const createMockExtensionContext = (): vscode.ExtensionContext => ({
-  subscriptions: [] as vscode.Disposable[],
-  workspaceState: {} as vscode.Memento,
-  globalState: {} as vscode.Memento & {
-    setKeysForSync(keys: readonly string[]): void
-  },
-  secrets: {} as vscode.SecretStorage,
-  extensionUri: {} as vscode.Uri,
-  extensionPath: '',
-  asAbsolutePath: vi.fn((relativePath: string) => `/mock/path/${relativePath}`),
-  environmentVariableCollection: {
-    getScoped: vi.fn(),
-  } as unknown as vscode.GlobalEnvironmentVariableCollection,
-  storagePath: undefined,
-  globalStoragePath: '',
-  logPath: '',
-  extensionMode: 1, // Normal mode
-  extension: {} as vscode.Extension<unknown>,
-  logUri: {} as vscode.Uri,
-  storageUri: undefined,
-  globalStorageUri: {} as vscode.Uri,
-  languageModelAccessInformation: {} as vscode.LanguageModelAccessInformation,
-})
-
-const createMockWorkspaceFolder = (path: string): vscode.WorkspaceFolder => ({
-  uri: { fsPath: path } as vscode.Uri,
-  name: 'test-workspace',
-  index: 0,
-})
-
-const createMockDisposable = (): vscode.Disposable => ({
-  dispose: vi.fn(),
-})
+import {
+  createMockExtensionContext,
+  createMockWorkspaceFolder,
+  createMockDisposable,
+} from '#/__tests__/test-utils/vscode-mocks.js'
 
 // Mock VS Code API
 const mockCommands = {
@@ -47,8 +17,10 @@ const mockWindow = {
   createQuickPick: vi.fn(),
 }
 
-const mockWorkspace = {
-  workspaceFolders: [] as vscode.WorkspaceFolder[] | undefined,
+const mockWorkspace: {
+  workspaceFolders: vscode.WorkspaceFolder[] | undefined
+} = {
+  workspaceFolders: undefined,
 }
 
 vi.mock('vscode', () => ({
@@ -70,6 +42,10 @@ vi.mock('#/utils/error-handling.js', () => ({
   formatUserError: vi.fn(),
 }))
 
+vi.mock('#/script-execution/execute-script.js', () => ({
+  executeScript: vi.fn(),
+}))
+
 describe('Extension', () => {
   let mockContext: vscode.ExtensionContext
 
@@ -84,6 +60,13 @@ describe('Extension', () => {
     expect(registerCalls.length).toBeGreaterThan(0)
     return registerCalls[0][1]
   }
+
+  const createSelectedScript = () => ({
+    packageName: 'test-package',
+    packagePath: '/test/path',
+    scriptName: 'build',
+    scriptCommand: 'npm run build',
+  })
 
   describe('activate', () => {
     test('registers command with correct ID', async () => {
@@ -231,13 +214,16 @@ describe('Extension', () => {
       expect(showScriptPicker).toHaveBeenCalledWith([])
     })
 
-    test('shows success message when script is selected', async () => {
+    test('executes script when script is selected', async () => {
       const { activate } = await import('#/extension/extension.js')
       const { discoverPackages } = await import(
         '#/package-discovery/discover-packages.js'
       )
       const { showScriptPicker } = await import(
         '#/script-quick-pick/show-script-picker.js'
+      )
+      const { executeScript } = await import(
+        '#/script-execution/execute-script.js'
       )
 
       const selectedScript = {
@@ -250,15 +236,15 @@ describe('Extension', () => {
       mockWorkspace.workspaceFolders = [createMockWorkspaceFolder('/test/path')]
       vi.mocked(discoverPackages).mockResolvedValue([])
       vi.mocked(showScriptPicker).mockResolvedValue(selectedScript)
+      vi.mocked(executeScript).mockResolvedValue()
 
       activate(mockContext)
 
       const commandHandler = getCommandHandler()
       await commandHandler()
 
-      expect(mockWindow.showInformationMessage).toHaveBeenCalledWith(
-        'Selected: build from test-package'
-      )
+      expect(executeScript).toHaveBeenCalledWith(selectedScript, '/test/path')
+      expect(mockWindow.showInformationMessage).not.toHaveBeenCalled()
     })
 
     test('does nothing when user cancels script selection', async () => {
@@ -326,7 +312,7 @@ describe('Extension', () => {
       vi.mocked(discoverPackages).mockResolvedValue([])
       vi.mocked(showScriptPicker).mockRejectedValue(error)
       vi.mocked(formatUserError).mockReturnValue(
-        'Formatted error: discovering packages'
+        'Formatted error: selecting script'
       )
 
       activate(mockContext)
@@ -334,12 +320,129 @@ describe('Extension', () => {
       const commandHandler = getCommandHandler()
       await commandHandler()
 
-      expect(formatUserError).toHaveBeenCalledWith(
-        error,
-        'discovering packages'
-      )
+      expect(formatUserError).toHaveBeenCalledWith(error, 'selecting script')
       expect(mockWindow.showErrorMessage).toHaveBeenCalledWith(
-        'Formatted error: discovering packages'
+        'Formatted error: selecting script'
+      )
+    })
+
+    test('shows information message when command is already executing', async () => {
+      const { activate } = await import('#/extension/extension.js')
+      const { discoverPackages } = await import(
+        '#/package-discovery/discover-packages.js'
+      )
+      const { showScriptPicker } = await import(
+        '#/script-quick-pick/show-script-picker.js'
+      )
+      const { executeScript } = await import(
+        '#/script-execution/execute-script.js'
+      )
+
+      const script = createSelectedScript()
+      mockWorkspace.workspaceFolders = [createMockWorkspaceFolder('/test/path')]
+      vi.mocked(discoverPackages).mockResolvedValue([])
+      vi.mocked(showScriptPicker).mockResolvedValue(script)
+
+      // Make executeScript take some time to complete
+      vi.mocked(executeScript).mockImplementation(
+        () => new Promise((resolve) => setTimeout(resolve, 100))
+      )
+
+      activate(mockContext)
+      const commandHandler = getCommandHandler()
+
+      // Start first execution
+      const firstExecution = commandHandler()
+
+      // Try to start second execution immediately
+      await commandHandler()
+
+      // Should show information message
+      expect(mockWindow.showInformationMessage).toHaveBeenCalledWith(
+        'A script is already running. Please wait for it to complete.'
+      )
+
+      // Wait for first to complete
+      await firstExecution
+    })
+
+    test('prevents concurrent command executions', async () => {
+      const { activate } = await import('#/extension/extension.js')
+      const { discoverPackages } = await import(
+        '#/package-discovery/discover-packages.js'
+      )
+      const { showScriptPicker } = await import(
+        '#/script-quick-pick/show-script-picker.js'
+      )
+      const { executeScript } = await import(
+        '#/script-execution/execute-script.js'
+      )
+
+      const script = createSelectedScript()
+      mockWorkspace.workspaceFolders = [createMockWorkspaceFolder('/test/path')]
+      vi.mocked(discoverPackages).mockResolvedValue([])
+      vi.mocked(showScriptPicker).mockResolvedValue(script)
+
+      // Make executeScript take some time to complete
+      vi.mocked(executeScript).mockImplementation(
+        () => new Promise((resolve) => setTimeout(resolve, 100))
+      )
+
+      activate(mockContext)
+      const commandHandler = getCommandHandler()
+
+      // Start first execution
+      const firstExecution = commandHandler()
+
+      // Try to start second execution immediately
+      const secondExecution = commandHandler()
+
+      // Wait for both to complete
+      await Promise.all([firstExecution, secondExecution])
+
+      // Should only execute once - the second attempt should be ignored
+      expect(discoverPackages).toHaveBeenCalledTimes(1)
+      expect(showScriptPicker).toHaveBeenCalledTimes(1)
+      expect(executeScript).toHaveBeenCalledTimes(1)
+    })
+
+    test('shows formatted error when script execution fails', async () => {
+      const { activate } = await import('#/extension/extension.js')
+      const { discoverPackages } = await import(
+        '#/package-discovery/discover-packages.js'
+      )
+      const { showScriptPicker } = await import(
+        '#/script-quick-pick/show-script-picker.js'
+      )
+      const { executeScript } = await import(
+        '#/script-execution/execute-script.js'
+      )
+      const { formatUserError } = await import('#/utils/error-handling.js')
+
+      const selectedScript = {
+        packageName: 'test-package',
+        packagePath: '/test/path',
+        scriptName: 'build',
+        scriptCommand: 'npm run build',
+      }
+      const error = new Error('Script execution failed')
+
+      mockWorkspace.workspaceFolders = [createMockWorkspaceFolder('/test/path')]
+      vi.mocked(discoverPackages).mockResolvedValue([])
+      vi.mocked(showScriptPicker).mockResolvedValue(selectedScript)
+      vi.mocked(executeScript).mockRejectedValue(error)
+      vi.mocked(formatUserError).mockReturnValue(
+        'Formatted error: executing script'
+      )
+
+      activate(mockContext)
+
+      const commandHandler = getCommandHandler()
+      await commandHandler()
+
+      expect(formatUserError).toHaveBeenCalledWith(error, 'executing script')
+      expect(mockWindow.showErrorMessage).toHaveBeenCalledWith(
+        'Formatted error: executing script'
       )
     })
   })

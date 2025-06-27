@@ -5,6 +5,7 @@ import type { PackageInfo } from '#/types/package-info.js'
 import type { ScriptQuickPickItem } from '#/types/script-quick-pick-item.js'
 
 import { showScriptPicker } from '#/script-quick-pick/show-script-picker.js'
+import { createTestQuickPick } from './test-helpers.js'
 
 vi.mock('vscode', () => ({
   window: {
@@ -47,46 +48,26 @@ describe('showScriptPicker', () => {
   ]
 
   test('creates quick pick with all scripts from all packages', () => {
-    const mockQuickPick = {
-      items: [] as ScriptQuickPickItem[],
-      placeholder: '',
-      show: vi.fn(),
-      dispose: vi.fn(),
-      onDidChangeValue: vi.fn(() => ({ dispose: vi.fn() })),
-      onDidAccept: vi.fn(() => ({ dispose: vi.fn() })),
-      onDidHide: vi.fn(() => ({ dispose: vi.fn() })),
-    }
+    const { quickPick } = createTestQuickPick()
 
-    vi.mocked(vscode.window.createQuickPick).mockReturnValue(
-      mockQuickPick as unknown as vscode.QuickPick<ScriptQuickPickItem>
-    )
+    vi.mocked(vscode.window.createQuickPick).mockReturnValue(quickPick)
 
     showScriptPicker(mockPackages)
 
     expect(vscode.window.createQuickPick).toHaveBeenCalled()
-    expect(mockQuickPick.items).toHaveLength(9) // Total scripts across all packages
-    expect(mockQuickPick.placeholder).toBe('Search for a script to run...')
-    expect(mockQuickPick.show).toHaveBeenCalled()
+    expect(quickPick.items).toHaveLength(9) // Total scripts across all packages
+    expect(quickPick.placeholder).toBe('Search for a script to run...')
+    expect(quickPick.show).toHaveBeenCalled()
   })
 
   test('formats quick pick items with correct labels and descriptions', () => {
-    const mockQuickPick = {
-      items: [] as ScriptQuickPickItem[],
-      placeholder: '',
-      show: vi.fn(),
-      dispose: vi.fn(),
-      onDidChangeValue: vi.fn(() => ({ dispose: vi.fn() })),
-      onDidAccept: vi.fn(() => ({ dispose: vi.fn() })),
-      onDidHide: vi.fn(() => ({ dispose: vi.fn() })),
-    }
+    const { quickPick } = createTestQuickPick()
 
-    vi.mocked(vscode.window.createQuickPick).mockReturnValue(
-      mockQuickPick as unknown as vscode.QuickPick<ScriptQuickPickItem>
-    )
+    vi.mocked(vscode.window.createQuickPick).mockReturnValue(quickPick)
 
     showScriptPicker(mockPackages)
 
-    const items = mockQuickPick.items
+    const items = quickPick.items
     const buildItem = items.find(
       (item) =>
         item.scriptName === 'build' &&
@@ -100,25 +81,9 @@ describe('showScriptPicker', () => {
   })
 
   test('returns selected script information when user accepts', async () => {
-    let acceptHandler: (() => void) | undefined
+    const { quickPick, triggerAccept } = createTestQuickPick()
 
-    const mockQuickPick = {
-      items: [] as ScriptQuickPickItem[],
-      placeholder: '',
-      selectedItems: [] as ScriptQuickPickItem[],
-      show: vi.fn(),
-      dispose: vi.fn(),
-      onDidChangeValue: vi.fn(),
-      onDidAccept: vi.fn((handler: () => void) => {
-        acceptHandler = handler
-        return { dispose: vi.fn() }
-      }),
-      onDidHide: vi.fn(() => ({ dispose: vi.fn() })),
-    }
-
-    vi.mocked(vscode.window.createQuickPick).mockReturnValue(
-      mockQuickPick as unknown as vscode.QuickPick<ScriptQuickPickItem>
-    )
+    vi.mocked(vscode.window.createQuickPick).mockReturnValue(quickPick)
 
     const resultPromise = showScriptPicker(mockPackages)
 
@@ -132,10 +97,10 @@ describe('showScriptPicker', () => {
       scriptName: 'build',
       scriptCommand: 'vite build',
     }
-    mockQuickPick.selectedItems = [selectedItem]
+    quickPick.selectedItems = [selectedItem]
 
     // Simulate user accepting
-    acceptHandler?.()
+    triggerAccept()
 
     const result = await resultPromise
     expect(result).toEqual({
@@ -144,82 +109,46 @@ describe('showScriptPicker', () => {
       scriptName: 'build',
       scriptCommand: 'vite build',
     })
-    expect(mockQuickPick.dispose).toHaveBeenCalled()
+    expect(quickPick.dispose).toHaveBeenCalled()
   })
 
   test('returns undefined when user cancels', async () => {
-    let hideHandler: (() => void) | undefined
+    const { quickPick, triggerHide } = createTestQuickPick()
 
-    const mockQuickPick = {
-      items: [] as ScriptQuickPickItem[],
-      placeholder: '',
-      show: vi.fn(),
-      dispose: vi.fn(),
-      onDidChangeValue: vi.fn(),
-      onDidAccept: vi.fn(() => ({ dispose: vi.fn() })),
-      onDidHide: vi.fn((handler: () => void) => {
-        hideHandler = handler
-        return { dispose: vi.fn() }
-      }),
-    }
-
-    vi.mocked(vscode.window.createQuickPick).mockReturnValue(
-      mockQuickPick as unknown as vscode.QuickPick<ScriptQuickPickItem>
-    )
+    vi.mocked(vscode.window.createQuickPick).mockReturnValue(quickPick)
 
     const resultPromise = showScriptPicker(mockPackages)
 
     // Simulate user canceling (hiding without accepting)
-    hideHandler?.()
+    triggerHide()
 
     const result = await resultPromise
     expect(result).toBeUndefined()
-    expect(mockQuickPick.dispose).toHaveBeenCalled()
+    expect(quickPick.dispose).toHaveBeenCalled()
   })
 
   test('registers value change handler for search', () => {
-    const mockQuickPick = {
-      items: [] as ScriptQuickPickItem[],
-      placeholder: '',
-      value: '',
-      show: vi.fn(),
-      dispose: vi.fn(),
-      onDidChangeValue: vi.fn(() => ({ dispose: vi.fn() })),
-      onDidAccept: vi.fn(() => ({ dispose: vi.fn() })),
-      onDidHide: vi.fn(() => ({ dispose: vi.fn() })),
-    }
+    const { quickPick } = createTestQuickPick()
 
-    vi.mocked(vscode.window.createQuickPick).mockReturnValue(
-      mockQuickPick as unknown as vscode.QuickPick<ScriptQuickPickItem>
-    )
+    vi.mocked(vscode.window.createQuickPick).mockReturnValue(quickPick)
 
     showScriptPicker(mockPackages)
 
     // Verify that change handler was registered
-    expect(mockQuickPick.onDidChangeValue).toHaveBeenCalled()
+    expect(quickPick.onDidChangeValue).toHaveBeenCalled()
 
     // Verify initial items are set
-    expect(mockQuickPick.items).toHaveLength(9)
+    expect(quickPick.items).toHaveLength(9)
   })
 
   test('handles empty package list', () => {
-    const mockQuickPick = {
-      items: [] as ScriptQuickPickItem[],
-      placeholder: '',
-      show: vi.fn(),
-      dispose: vi.fn(),
-      onDidChangeValue: vi.fn(() => ({ dispose: vi.fn() })),
-      onDidAccept: vi.fn(() => ({ dispose: vi.fn() })),
-      onDidHide: vi.fn(() => ({ dispose: vi.fn() })),
-    }
+    const { quickPick } = createTestQuickPick()
 
-    vi.mocked(vscode.window.createQuickPick).mockReturnValue(
-      mockQuickPick as unknown as vscode.QuickPick<ScriptQuickPickItem>
-    )
+    vi.mocked(vscode.window.createQuickPick).mockReturnValue(quickPick)
 
     showScriptPicker([])
 
-    expect(mockQuickPick.items).toHaveLength(0)
-    expect(mockQuickPick.placeholder).toBe('No scripts found in workspace')
+    expect(quickPick.items).toHaveLength(0)
+    expect(quickPick.placeholder).toBe('No scripts found in workspace')
   })
 })

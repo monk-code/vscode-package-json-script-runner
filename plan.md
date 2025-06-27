@@ -86,8 +86,18 @@ Modern JavaScript monorepos (using tools like pnpm workspaces, Yarn workspaces, 
 - **Extension Metadata**: Added repository, keywords, license, and moved runtime dependencies correctly
 - **Comprehensive Testing**: 41 total tests covering all behavioral scenarios and edge cases
 
+### ✅ Completed (Phase 3 - Script Execution Engine)
+- **Package Manager Detection**: Detects pnpm, yarn, or npm based on lock files
+- **Command Generation**: Generates correct commands with workspace filters for each package manager
+- **Terminal Management**: Creates VS Code terminals with proper working directories and names
+- **Script Execution**: Full implementation from selection to terminal execution
+- **Error Handling**: Granular error contexts for each phase (discovering, selecting, executing)
+- **Concurrent Execution Protection**: Prevents multiple scripts from running simultaneously
+- **User Feedback**: Shows information message when attempting concurrent execution
+- **Test Coverage**: 99 total tests with comprehensive behavioral coverage
+- **Type Safety Enhancement**: Created mock factory utilities eliminating all type assertions in tests
+
 ### 📋 Pending
-- **Phase 3**: Script execution engine with terminal management
 - **Phase 4**: Performance optimizations (caching, file watching)
 - **Phase 5**: Enhanced features (recent scripts, favorites)
 - **Phase 6**: Distribution and marketplace publishing
@@ -95,7 +105,7 @@ Modern JavaScript monorepos (using tools like pnpm workspaces, Yarn workspaces, 
 ### 🛠️ Development Commands Available
 ```bash
 pnpm build          # Build extension for distribution
-pnpm test           # Run all tests (41 total)
+pnpm test           # Run all tests (99 total)
 pnpm test:watch     # Run tests in watch mode
 pnpm types:check    # TypeScript validation
 pnpm lint           # Check linting issues
@@ -356,9 +366,18 @@ src/
 │   └── selected-script.ts             # Selection result types ✅
 ├── utils/
 │   └── error-handling.ts              # User-friendly error formatting ✅
-├── script-execution/                  # 📋 PENDING: Terminal management
+├── script-execution/                  # Terminal management ✅
+│   ├── execute-script.ts              # Main execution orchestration ✅
+│   ├── generate-command.ts            # Package manager command generation ✅
+│   └── terminal-manager.ts            # VS Code terminal integration ✅
+├── package-manager/                   # Detection logic ✅
+│   ├── detect-package-manager.ts      # Lock file based detection ✅
+│   └── package-manager-types.ts       # Type definitions ✅
+├── __tests__/
+│   └── test-utils/
+│       ├── vscode-mocks.ts            # Type-safe VS Code API mocks ✅
+│       └── vscode-mocks.spec.ts       # Mock factory tests ✅
 ├── cache-manager/                     # 📋 PENDING: Performance caching
-├── package-manager/                   # 📋 PENDING: Detection logic
 └── file-watcher/                      # 📋 PENDING: Real-time updates
 
 test-workspace/                        # ✅ Complete monorepo test structure
@@ -390,16 +409,18 @@ test-workspace/                        # ✅ Complete monorepo test structure
 ### Technologies & Tools Used
 - **Package Manager**: pnpm (with workspaces support)
 - **Language**: TypeScript with strict mode
-- **Testing**: Vitest with .spec.ts naming convention (41 total tests)
+- **Testing**: Vitest with .spec.ts naming convention (99 total tests)
 - **Code Quality**: Biome for linting and formatting
 - **Build Orchestration**: npm-run-all2 for sequential script execution
 - **Module System**: ES modules with node: imports
 - **Path Aliases**: TypeScript `#/` alias for cleaner imports
 - **Fuzzy Search**: Fuse.js for performant script filtering
-- **VS Code API**: Full integration with commands, QuickPick, and error handling
+- **VS Code API**: Full integration with commands, QuickPick, terminals, and error handling
 - **Git**: Initialized with comprehensive .gitignore
 - **Development Workflow**: TDD with Red-Green-Refactor cycles
 - **Extension Development**: Launch and build configurations for VS Code extension testing
+- **Terminal Integration**: VS Code terminal API for script execution
+- **Package Manager Support**: Automatic detection and command generation for pnpm, yarn, npm
 
 ### Recent Improvements (from Code Reviews)
 - **TDD Compliance**: Completely rewrote extension tests following strict Red-Green-Refactor methodology
@@ -408,7 +429,7 @@ test-workspace/                        # ✅ Complete monorepo test structure
 - **Import Standards**: Fixed formatting to comply with project import hierarchy
 - **Extension Metadata**: Added complete package.json manifest with repository, keywords, license
 - **Dependency Organization**: Moved fuse.js from devDependencies to dependencies (runtime requirement)
-- **Test Coverage**: Expanded from 24 to 41 tests with comprehensive behavioral and edge case coverage
+- **Test Coverage**: Expanded from 24 to 99 tests with comprehensive behavioral and edge case coverage
 - **Mock Quality**: Created proper VS Code interface mocks without type assertions
 - **Error UX**: Context-aware error messages for better developer experience
 
@@ -452,20 +473,24 @@ This extension transforms script execution from a repetitive chore into an insta
 
 ## 🚀 Current Status: Ready for Manual Testing
 
-**Phase 2 Complete**: The extension now has a fully functional QuickPick UI with fuzzy search and is ready for manual testing and user feedback.
+**Phase 3 Complete**: The extension now has full script execution capabilities with terminal integration and is ready for production use.
 
 ### ✅ **Working Features**
 - **Universal Script Discovery**: Finds all package.json scripts across the monorepo
 - **Fuzzy Search**: Fast, intuitive search using Fuse.js with configurable thresholds
 - **Native VS Code UI**: QuickPick interface with consistent look and feel
 - **Keyboard Shortcuts**: `Ctrl+Shift+R` (or `Cmd+Shift+R` on Mac) for instant access
-- **Error Handling**: User-friendly error messages for all failure scenarios
+- **Script Execution**: Full terminal integration with automatic package manager detection
+- **Package Manager Support**: Automatically detects and uses pnpm, yarn, or npm
+- **Terminal Management**: Creates properly named terminals with correct working directories
+- **Concurrent Execution Protection**: Prevents multiple scripts from running simultaneously
+- **Error Handling**: Context-aware error messages for all failure scenarios
 - **Edge Case Support**: Graceful handling of missing workspaces, empty packages, user cancellation
 
 ### 🧪 **Testing Infrastructure**
-- **41 Total Tests**: Comprehensive coverage including behavioral tests
+- **99 Total Tests**: Comprehensive coverage including behavioral tests and edge cases
 - **TDD Compliant**: All new code written following Red-Green-Refactor methodology
-- **Type Safe**: Zero type assertions, proper VS Code API mocks
+- **Type Safe**: Zero type assertions, proper VS Code API mocks via mock factory utilities
 - **Validation Pipeline**: Automated checks for types, linting, formatting, and tests
 
 ### 🎯 **Manual Testing Guide**
@@ -476,13 +501,15 @@ This extension transforms script execution from a repetitive chore into an insta
    - Press `Ctrl+Shift+R` (or `Cmd+Shift+R` on Mac)
    - Or use Command Palette: `Package Scripts: Run Package Script`
    - Type to search through available scripts with fuzzy matching
-   - Select a script to see confirmation message (execution coming in Phase 3)
+   - Select a script to execute it in a new VS Code terminal
+   - The terminal will be named after the script and package
+   - Scripts run in their package's directory with the appropriate package manager
 
 ### 📋 **Next Phase Ready**
-With Phase 2 complete and thoroughly tested, the extension is ready for **Phase 3: Script Execution Engine**, which will add:
-- Package manager detection (pnpm, npm, yarn)
-- VS Code terminal integration
-- Script execution with proper working directories
-- Output handling and error reporting
+With Phase 3 complete and thoroughly tested, the extension is ready for **Phase 4: Performance Optimizations**, which will add:
+- In-memory caching of discovered packages
+- File system watching for real-time updates
+- Debounced refresh on package.json changes
+- Lazy loading for improved startup time
 
-The solid foundation built in Phases 1-2 ensures Phase 3 can be implemented efficiently while maintaining the high code quality and test coverage standards established.
+The solid foundation built in Phases 1-3 ensures Phase 4 can be implemented efficiently while maintaining the high code quality and test coverage standards established. The extension is already fully functional and can be used productively while these performance enhancements are added.

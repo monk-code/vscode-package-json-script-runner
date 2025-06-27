@@ -1,147 +1,101 @@
 # Critical Code Review
 
-## 1. ❌ Import Ordering Violation
-
-**Location:** `src/__tests__/extension/extension.spec.ts`
-
-```typescript
-// Current (INCORRECT):
-import { describe, test, expect, vi } from 'vitest'
-
-// Mock vscode before importing extension
-vi.mock('vscode', () => ({...}))
-
-// Should be:
-import { describe, test, expect, vi } from 'vitest'
-
-// Mock must be hoisted before any imports that use it
-vi.mock('vscode', () => ({...}))
-```
-
-The import order is correct, but there's a subtle issue: the mock needs to be hoisted above all imports, which Vitest handles automatically.
-
-**Location:** `src/extension/extension.ts`
-
-```typescript
-// Current (INCORRECT):
-import * as vscode from 'vscode'
-
-import { discoverPackages } from '#/package-discovery/discover-packages.js'
-import { showScriptPicker } from '#/script-quick-pick/show-script-picker.js'
-
-// Should be:
-import * as vscode from 'vscode'
-import { discoverPackages } from '#/package-discovery/discover-packages.js'
-import { showScriptPicker } from '#/script-quick-pick/show-script-picker.js'
-```
-
-Extra blank line between external and local imports violates the import hierarchy rules.
-
-## 2. ❌ TDD Violation - CRITICAL
+## 1. ❌ TDD Violation - CRITICAL
 
 **Severity:** CRITICAL - Direct violation of non-negotiable principle
 
-The test file only tests that functions exist, not their behavior. This suggests:
-- Production code was written first without failing tests
-- Tests were added after implementation
-- No evidence of Red-Green-Refactor cycle
-
-CLAUDE.md states: "TEST-DRIVEN DEVELOPMENT IS NON-NEGOTIABLE. Every single line of production code must be written in response to a failing test."
-
-## 3. ❌ Functional Programming Violations
-
-**Location:** `src/extension/extension.ts`
-
+The tests only verify function existence, not behavior:
 ```typescript
-// Violation: Not using const arrow functions
-export const activate = (context: vscode.ExtensionContext): void => {
-  // Side effects without explicit documentation
-  context.subscriptions.push(disposable)
-}
+test('exports activate function', () => {
+  expect(extension.activate).toBeDefined()
+})
 ```
 
-While the code uses arrow functions correctly, it has unavoidable side effects (required by VS Code API) that aren't explicitly documented as required by CLAUDE.md.
+This indicates production code was written without failing tests. CLAUDE.md explicitly states: "TEST-DRIVEN DEVELOPMENT IS NON-NEGOTIABLE. Every single line of production code must be written in response to a failing test."
 
-## 4. ⚠️ Incomplete Test Coverage
+## 2. ❌ Type Assertions Violation
 
-The test only verifies:
-- Functions are defined
-- `push` is called on subscriptions
-
-It doesn't test:
-- Command registration with correct ID
-- Error handling when no workspace folders exist
-- Success flow when packages are discovered
-- Error flow when package discovery fails
-- Script picker integration
-
-## 5. ❌ Type Safety Issues
+**Location:** Multiple test files
 
 ```typescript
-// Weak typing in test mock
-const mockContext = {
-  subscriptions: {
-    push: vi.fn(),
-  },
 } as unknown as import('vscode').ExtensionContext
 ```
 
-Using `as unknown as` is a type assertion that violates the "No type assertions" rule. Should create a proper mock that satisfies the interface.
+Using `as unknown as` violates the strict "No type assertions" rule. Create proper mocks satisfying the interface instead.
 
-## 6. ⚠️ Error Handling
+## 3. ❌ Missing .js Extensions
+
+**Location:** All TypeScript imports
 
 ```typescript
-vscode.window.showErrorMessage(
-  `Error discovering packages: ${String(error)}`
-)
+import { discoverPackages } from '../package-discovery/discover-packages'
+// Should be:
+import { discoverPackages } from '../package-discovery/discover-packages.js'
 ```
 
-Using `String(error)` loses error context. Should properly handle error types and provide meaningful messages.
+CLAUDE.md: "Local imports of TypeScript files must always have a .js extension"
 
-## 7. ✅ No Unnecessary Comments
+## 4. ❌ Insufficient Test Coverage
 
-Good adherence to "no comments" rule. Code is self-documenting.
+Tests don't verify any actual behavior:
+- No command registration verification
+- No error handling tests
+- No integration between components
+- No edge case handling
 
-## 8. ⚠️ Missing Edge Cases
+## 5. ⚠️ Error Handling Issues
 
-- What if multiple workspace folders exist?
-- What if package discovery returns empty array?
-- What if user cancels the script picker?
-- Race conditions if command is triggered multiple times?
+```typescript
+`Error discovering packages: ${String(error)}`
+```
 
-## 9. 📝 Package.json Issues
+`String(error)` loses error context. Should properly type check and handle different error types.
 
-### Missing Required Fields
-- `repository` field
-- `keywords` field
-- `icon` field (recommended for VS Code extensions)
-- `license` field
-- Proper `publisher` value (currently placeholder)
+## 6. ❌ Missing Type Annotations
 
-### Dependency Issues
-- `fuse.js` is listed as devDependency but likely needed at runtime
-- Missing `@vscode/test-electron` for proper VS Code extension testing
+```typescript
+export const detectPackageManager = (workspaceRoot: string) => {
+```
 
-## 10. ❌ Project Structure Violation
+Return type should be explicit for public APIs: `=> PackageManager`
 
-Test files in `src/__tests__/` but CLAUDE.md specifies:
-- Packages: `/lib` folder
-- Apps: `/src` folder
+## 7. ⚠️ Potential Race Conditions
 
-This suggests incorrect project structure for the monorepo pattern described.
+No protection against multiple concurrent command executions. User could trigger command multiple times rapidly.
+
+## 8. ❌ Test File Naming
+
+Some tests use `.test.ts` instead of `.spec.ts`:
+- CLAUDE.md specifies: "Use *.spec.ts naming convention for test files"
+
+## 9. ⚠️ Missing Edge Cases
+
+Unhandled scenarios:
+- Empty workspace
+- Multiple workspace folders
+- User cancellation in picker
+- Missing package.json files
+- Malformed package.json
+
+## 10. ❌ Package.json Issues
+
+Missing required fields:
+- `repository`
+- `keywords`
+- `license`
+- Invalid `publisher` (using placeholder)
 
 ## Summary
 
-### Critical Issues:
-1. **TDD Violation** - No evidence of test-first development
-2. **Insufficient Test Coverage** - Tests don't verify behavior
-3. **Type Assertions** - Using `as unknown as` violates strict TypeScript rules
-4. **Import Formatting** - Extra blank lines in imports
+**Critical Issues:**
+1. No evidence of TDD - tests written after code
+2. Type assertions violate strict TypeScript rules
+3. Missing .js extensions on all imports
+4. Tests don't verify any behavior
 
-### Recommendations:
-1. Rewrite using strict TDD - start with failing behavioral tests
-2. Remove type assertions, create proper mocks
-3. Add comprehensive error handling tests
-4. Fix import formatting
-5. Update package.json with required fields
-6. Consider project structure alignment with monorepo guidelines
+**Required Actions:**
+1. Rewrite using TDD - failing tests first
+2. Remove all type assertions
+3. Add .js to all local imports
+4. Write behavioral tests with 100% coverage
+5. Handle all edge cases properly
