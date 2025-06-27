@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "target": "ES2022",
     "lib": ["ES2022"],
-    "outDir": "out",
+    "outDir": "dist",
     "rootDir": "src",
     "sourceMap": true,
     "strict": true,
@@ -30,7 +31,9 @@
     "node_modules",
     ".vscode-test",
     "out",
+    "dist",
     "test-workspace",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "esbuild.config.mjs"
   ]
 }
