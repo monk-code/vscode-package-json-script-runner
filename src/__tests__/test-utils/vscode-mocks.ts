@@ -35,7 +35,7 @@ export const createMockExtensionContext = (): vscode.ExtensionContext => {
  */
 export const createMockWorkspaceFolder = (
   path: string,
-  name = 'test-workspace',
+  name = 'test-fixtures',
   index = 0
 ): vscode.WorkspaceFolder => {
   const folder: vscode.WorkspaceFolder = {

@@ -3,11 +3,31 @@ import { join } from 'node:path'
 import { describe, expect, test } from 'vitest'
 
 const getWorkspacePath = (subdirectory?: string) => {
-  const base = join(process.cwd(), 'test-workspace')
+  const base = join(process.cwd(), 'test/fixtures/monorepo')
   return subdirectory ? join(base, subdirectory) : base
 }
 
 describe('discoverPackages', () => {
+  test('discovers packages from any directory without workspace detection', async () => {
+    // Test that it works with non-workspace directories
+    const singlePackagePath = getWorkspacePath('packages/ui-components')
+    const packages = await discoverPackages(singlePackagePath)
+
+    expect(packages).toHaveLength(1)
+    expect(packages[0].path).toBe(singlePackagePath)
+    expect(packages[0].name).toBe('@test/ui-components')
+  })
+
+  test('discovers packages recursively from starting point', async () => {
+    // Test that it finds all packages under the given path
+    const packagesPath = getWorkspacePath('packages')
+    const packages = await discoverPackages(packagesPath)
+
+    expect(packages.length).toBeGreaterThanOrEqual(5) // ui-components, api-server, shared-utils, no-scripts, no-name, broken-package
+    const packageNames = packages.map((p) => p.name).filter(Boolean)
+    expect(packageNames).toContain('@test/ui-components')
+    expect(packageNames).toContain('@test/api-server')
+  })
   test('discovers a single package.json file', async () => {
     const workspacePath = getWorkspacePath('packages/ui-components')
     const packages = await discoverPackages(workspacePath)
@@ -80,7 +100,7 @@ describe('discoverPackages', () => {
     const packages = await discoverPackages(workspacePath)
 
     expect(packages[0].name).toBe('@test/ui-components')
-    expect(packages[0].relativePath).toBe('packages/ui-components')
+    expect(packages[0]).not.toHaveProperty('relativePath')
   })
 
   test('path property should be the directory containing package.json, not the file itself', async () => {

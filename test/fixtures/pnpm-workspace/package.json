@@ -1,0 +1,20 @@
+{
+  "name": "pnpm-test-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "pnpm -r test",
+    "build": "pnpm -r build",
+    "dev": "pnpm --filter @pnpm-test/web dev",
+    "lint": "pnpm -r lint",
+    "clean": "pnpm -r clean",
+    "install:all": "pnpm install"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

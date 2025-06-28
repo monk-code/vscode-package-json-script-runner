@@ -1,0 +1,17 @@
+{
+  "name": "@pnpm-test/web",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "echo \"Starting web with pnpm\"",
+    "test": "echo \"Testing web with pnpm\"",
+    "build": "echo \"Building web with pnpm\"",
+    "dev": "echo \"Development mode with pnpm\"",
+    "lint": "echo \"Linting web with pnpm\"",
+    "clean": "echo \"Cleaning web with pnpm\"",
+    "preview": "echo \"Preview with pnpm\""
+  },
+  "dependencies": {
+    "@pnpm-test/core": "workspace:*"
+  }
+}

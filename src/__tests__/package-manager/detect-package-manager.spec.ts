@@ -180,9 +180,11 @@ describe('detectPackageManager', () => {
       throw new Error('ENOENT: no such file or directory')
     })
 
-    const result = await detectPackageManager('./test-workspace')
+    const result = await detectPackageManager('./test/fixtures/monorepo')
 
     expect(result).toBe('pnpm' as PackageManager)
-    expect(mockFs.access).toHaveBeenCalledWith('test-workspace/pnpm-lock.yaml')
+    expect(mockFs.access).toHaveBeenCalledWith(
+      'test/fixtures/monorepo/pnpm-lock.yaml'
+    )
   })
 })

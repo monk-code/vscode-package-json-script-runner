@@ -6,7 +6,6 @@ export const realWorldPackages: PackageInfo[] = [
   {
     path: '/workspace/packages/babel-core',
     name: '@babel/core',
-    relativePath: 'packages/babel-core',
     scripts: {
       build: 'gulp build',
       test: 'jest',
@@ -20,7 +19,6 @@ export const realWorldPackages: PackageInfo[] = [
   {
     path: '/workspace/packages/babel-parser',
     name: '@babel/parser',
-    relativePath: 'packages/babel-parser',
     scripts: {
       build: 'gulp build:bundle',
       test: 'jest',
@@ -34,7 +32,6 @@ export const realWorldPackages: PackageInfo[] = [
   {
     path: '/workspace/packages/jest-cli',
     name: 'jest-cli',
-    relativePath: 'packages/jest-cli',
     scripts: {
       test: 'node ./bin/jest.js',
       'test:ci': 'yarn test --ci',
@@ -53,7 +50,6 @@ export const realWorldPackages: PackageInfo[] = [
   {
     path: '/workspace/packages/lerna',
     name: 'lerna',
-    relativePath: 'packages/lerna',
     scripts: {
       test: 'jest',
       'test:watch': 'jest --watch',
@@ -69,7 +65,6 @@ export const realWorldPackages: PackageInfo[] = [
   {
     path: '/workspace/packages/react-native',
     name: 'react-native',
-    relativePath: 'packages/react-native',
     scripts: {
       start: 'react-native start',
       test: 'jest',
@@ -90,7 +85,6 @@ export const realWorldPackages: PackageInfo[] = [
   {
     path: '/workspace/apps/mobile-app',
     name: '@company/mobile-app',
-    relativePath: 'apps/mobile-app',
     scripts: {
       start: 'expo start',
       'start:dev': 'expo start --dev',
@@ -115,7 +109,6 @@ export const realWorldPackages: PackageInfo[] = [
   {
     path: '/workspace/services/api-gateway',
     name: '@backend/api-gateway',
-    relativePath: 'services/api-gateway',
     scripts: {
       dev: 'nodemon --exec ts-node src/index.ts',
       'dev:debug':
@@ -138,7 +131,6 @@ export const realWorldPackages: PackageInfo[] = [
   {
     path: '/workspace/tools/eslint-config',
     name: '@company/eslint-config',
-    relativePath: 'tools/eslint-config',
     scripts: {
       test: 'mocha tests --recursive',
       lint: 'eslint .',
@@ -176,7 +168,6 @@ export const generateRealWorldVariations = (): PackageInfo[] => {
         variations.push({
           path: `/workspace/packages/${name.replace(/[@/.]/g, '')}`,
           name,
-          relativePath: `packages/${name.replace(/[@/.]/g, '')}`,
           scripts: {
             dev: 'vite',
             build: 'vite build',

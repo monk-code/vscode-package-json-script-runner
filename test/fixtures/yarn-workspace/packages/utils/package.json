@@ -1,0 +1,11 @@
+{
+  "name": "@yarn-test/utils",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Testing utils with yarn\"",
+    "build": "echo \"Building utils with yarn\"",
+    "lint": "echo \"Linting utils with yarn\"",
+    "clean": "echo \"Cleaning utils with yarn\""
+  }
+}

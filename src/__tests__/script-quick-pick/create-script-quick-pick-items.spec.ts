@@ -8,7 +8,6 @@ describe('createScriptQuickPickItems and fuzzy search', () => {
     {
       path: '/workspace/packages/ui-components',
       name: '@mycompany/ui-components',
-      relativePath: 'packages/ui-components',
       scripts: {
         build: 'vite build',
         test: 'vitest',
@@ -18,7 +17,6 @@ describe('createScriptQuickPickItems and fuzzy search', () => {
     {
       path: '/workspace/packages/api-server',
       name: '@mycompany/api-server',
-      relativePath: 'packages/api-server',
       scripts: {
         start: 'node index.js',
         test: 'jest',

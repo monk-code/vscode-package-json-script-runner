@@ -1,5 +1,5 @@
 import { promises as fs, type Dirent } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join } from 'node:path'
 import type { PackageInfo } from '#/types/package-info.js'
 
 const EXCLUDED_DIRECTORIES = new Set(['node_modules'])
@@ -8,48 +8,21 @@ const shouldExcludeDirectory = (name: string): boolean =>
   EXCLUDED_DIRECTORIES.has(name)
 
 const parsePackageJson = async (
-  filePath: string,
-  rootPath: string
+  filePath: string
 ): Promise<PackageInfo | null> => {
   try {
     const content = await fs.readFile(filePath, 'utf8')
     const packageData = JSON.parse(content)
     const packageDir = filePath.replace('/package.json', '')
-    const relativePath = relative(rootPath, packageDir)
 
     return {
       path: packageDir,
       name: packageData.name,
-      relativePath: relativePath || '.',
       scripts: packageData.scripts || {},
     }
   } catch {
     return null
   }
-}
-
-const findWorkspaceRoot = async (startPath: string): Promise<string> => {
-  let currentPath = startPath
-
-  while (currentPath !== '/') {
-    try {
-      const packageJsonPath = join(currentPath, 'package.json')
-      const content = await fs.readFile(packageJsonPath, 'utf8')
-      const packageData = JSON.parse(content)
-
-      if (packageData.workspaces) {
-        return currentPath
-      }
-    } catch {}
-
-    const parentPath = join(currentPath, '..')
-    if (parentPath === currentPath) {
-      break
-    }
-    currentPath = parentPath
-  }
-
-  return startPath
 }
 
 const getDirectoryEntries = async (dir: string) => {
@@ -62,17 +35,16 @@ const getDirectoryEntries = async (dir: string) => {
 
 const processEntry = async (
   dir: string,
-  entry: Dirent,
-  rootPath: string
+  entry: Dirent
 ): Promise<PackageInfo[]> => {
   const fullPath = join(dir, entry.name)
 
   if (entry.isDirectory() && !shouldExcludeDirectory(entry.name)) {
-    return discoverPackagesInDirectory(fullPath, rootPath)
+    return discoverPackagesInDirectory(fullPath)
   }
 
   if (entry.name === 'package.json') {
-    const packageInfo = await parsePackageJson(fullPath, rootPath)
+    const packageInfo = await parsePackageJson(fullPath)
     return packageInfo ? [packageInfo] : []
   }
 
@@ -80,13 +52,12 @@ const processEntry = async (
 }
 
 const discoverPackagesInDirectory = async (
-  dir: string,
-  rootPath: string
+  dir: string
 ): Promise<PackageInfo[]> => {
   const entries = await getDirectoryEntries(dir)
 
   const packageInfoArrays = await Promise.all(
-    entries.map((entry) => processEntry(dir, entry, rootPath))
+    entries.map((entry) => processEntry(dir, entry))
   )
 
   return packageInfoArrays.flat()
@@ -95,6 +66,5 @@ const discoverPackagesInDirectory = async (
 export const discoverPackages = async (
   workspacePath: string
 ): Promise<readonly PackageInfo[]> => {
-  const rootPath = await findWorkspaceRoot(workspacePath)
-  return discoverPackagesInDirectory(workspacePath, rootPath)
+  return discoverPackagesInDirectory(workspacePath)
 }

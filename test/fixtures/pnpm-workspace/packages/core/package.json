@@ -1,0 +1,11 @@
+{
+  "name": "@pnpm-test/core",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Testing core with pnpm\"",
+    "build": "echo \"Building core with pnpm\"",
+    "lint": "echo \"Linting core with pnpm\"",
+    "clean": "echo \"Cleaning core with pnpm\""
+  }
+}

@@ -36,7 +36,7 @@ describe('VS Code Mock Factories', () => {
       const folder = createMockWorkspaceFolder('/test/path')
 
       expect(folder.uri.fsPath).toBe('/test/path')
-      expect(folder.name).toBe('test-workspace')
+      expect(folder.name).toBe('test-fixtures')
       expect(folder.index).toBe(0)
     })
 

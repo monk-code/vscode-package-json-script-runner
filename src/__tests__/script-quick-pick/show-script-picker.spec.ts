@@ -24,7 +24,6 @@ describe('showScriptPicker', () => {
     {
       path: '/workspace/packages/ui-components',
       name: '@mycompany/ui-components',
-      relativePath: 'packages/ui-components',
       scripts: {
         build: 'vite build',
         test: 'vitest',
@@ -34,7 +33,6 @@ describe('showScriptPicker', () => {
     {
       path: '/workspace/packages/api-server',
       name: '@mycompany/api-server',
-      relativePath: 'packages/api-server',
       scripts: {
         start: 'node index.js',
         test: 'jest',
@@ -44,7 +42,6 @@ describe('showScriptPicker', () => {
     {
       path: '/workspace/apps/web',
       name: '@mycompany/web',
-      relativePath: 'apps/web',
       scripts: {
         dev: 'next dev',
         build: 'next build',
@@ -229,7 +226,6 @@ describe('showScriptPicker', () => {
       {
         path: '/workspace/packages/mobile-app',
         name: '@test/mobile-app',
-        relativePath: 'packages/mobile-app',
         scripts: {
           start: 'expo start',
           build: 'expo build',
@@ -278,7 +274,6 @@ describe('showScriptPicker', () => {
       {
         path: '/workspace/packages/mobile-app',
         name: '@test/mobile-app',
-        relativePath: 'packages/mobile-app',
         scripts: {
           start: 'expo start',
           'start:dev': 'expo start --dev',
@@ -288,7 +283,6 @@ describe('showScriptPicker', () => {
       {
         path: '/workspace/packages/mobility-service',
         name: '@company/mobility-service',
-        relativePath: 'packages/mobility-service',
         scripts: {
           start: 'node index.js',
           test: 'jest',
@@ -297,7 +291,6 @@ describe('showScriptPicker', () => {
       {
         path: '/workspace/packages/mob-tool',
         name: 'mob-tool',
-        relativePath: 'packages/mob-tool',
         scripts: {
           start: 'node start.js',
         },
@@ -305,7 +298,6 @@ describe('showScriptPicker', () => {
       {
         path: '/workspace/packages/demo-app',
         name: '@test/demo-app',
-        relativePath: 'packages/demo-app',
         scripts: {
           start: 'node demo.js',
         },
@@ -381,7 +373,6 @@ describe('showScriptPicker', () => {
       {
         path: '/workspace/packages/api',
         name: '@company/api',
-        relativePath: 'packages/api',
         scripts: {
           start: 'node server.js',
           'start:dev': 'nodemon server.js',
@@ -390,7 +381,6 @@ describe('showScriptPicker', () => {
       {
         path: '/workspace/packages/api-client',
         name: '@company/api-client',
-        relativePath: 'packages/api-client',
         scripts: {
           build: 'tsc',
           test: 'jest',
@@ -399,7 +389,6 @@ describe('showScriptPicker', () => {
       {
         path: '/workspace/packages/API-Gateway',
         name: '@company/API-Gateway',
-        relativePath: 'packages/API-Gateway',
         scripts: {
           start: 'node gateway.js',
         },
@@ -407,7 +396,6 @@ describe('showScriptPicker', () => {
       {
         path: '/workspace/apps/mobile_app',
         name: '@test/mobile_app',
-        relativePath: 'apps/mobile_app',
         scripts: {
           'dev:ios': 'expo start --ios',
           'dev:android': 'expo start --android',
@@ -416,7 +404,6 @@ describe('showScriptPicker', () => {
       {
         path: '/workspace/packages/mobile-web',
         name: 'mobile-web',
-        relativePath: 'packages/mobile-web',
         scripts: {
           serve: 'vite serve',
         },
@@ -767,7 +754,6 @@ describe('showScriptPicker', () => {
       {
         path: '/workspace/apps/mobile-app',
         name: '@test/mobile-app',
-        relativePath: 'apps/mobile-app',
         scripts: {
           start: 'expo start',
           build: 'expo build',
@@ -847,7 +833,6 @@ describe('showScriptPicker', () => {
       {
         path: '/workspace/apps/mobile-app',
         name: '@test/mobile-app',
-        relativePath: 'apps/mobile-app',
         scripts: {
           start: 'expo start',
           build: 'expo build',
@@ -891,7 +876,6 @@ describe('showScriptPicker', () => {
       {
         path: '/workspace/apps/mobile-app',
         name: '@test/mobile-app',
-        relativePath: 'apps/mobile-app',
         scripts: {
           start: 'expo start',
           build: 'expo build',

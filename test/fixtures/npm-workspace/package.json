@@ -1,0 +1,24 @@
+{
+  "name": "npm-test-project",
+  "version": "1.0.0",
+  "description": "Test project for npm package manager",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"Running tests with npm\"",
+    "build": "echo \"Building with npm\"",
+    "dev": "echo \"Development mode with npm\"",
+    "lint": "echo \"Linting with npm\"",
+    "clean": "echo \"Cleaning with npm\""
+  },
+  "keywords": ["test", "npm"],
+  "author": "Test Author",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

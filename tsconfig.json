@@ -32,7 +32,7 @@
     ".vscode-test",
     "out",
     "dist",
-    "test-workspace",
+    "test",
     "vitest.config.mts",
     "esbuild.config.mjs"
   ]

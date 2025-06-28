@@ -129,7 +129,6 @@ describe('Script Quick Pick Performance', () => {
       {
         path: '/workspace/packages/build-tools',
         name: '@tools/build',
-        relativePath: 'packages/build-tools',
         scripts: Object.fromEntries(
           Array.from({ length: 50 }, (_, i) => [
             `script${i}`,
@@ -141,7 +140,6 @@ describe('Script Quick Pick Performance', () => {
       {
         path: '/workspace/packages/enterprise-app',
         name: '@enterprise/super-long-package-name-that-represents-real-world-scenarios',
-        relativePath: 'packages/enterprise-app',
         scripts: {
           'build:production:with:all:optimizations:enabled':
             'webpack --mode production --optimize',
@@ -155,7 +153,6 @@ describe('Script Quick Pick Performance', () => {
       {
         path: '/workspace/packages/special-chars',
         name: '@company/package.with-special_chars@2.0',
-        relativePath: 'packages/special-chars',
         scripts: {
           'pre:build': 'echo "Pre-build"',
           'build:debug': 'tsc --sourceMap',
