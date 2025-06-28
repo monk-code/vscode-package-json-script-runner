@@ -18,7 +18,7 @@ const parsePackageJson = async (
     const relativePath = relative(rootPath, packageDir)
 
     return {
-      path: filePath,
+      path: packageDir,
       name: packageData.name,
       relativePath: relativePath || '.',
       scripts: packageData.scripts || {},

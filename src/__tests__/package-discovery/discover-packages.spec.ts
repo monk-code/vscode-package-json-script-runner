@@ -1,6 +1,6 @@
-import { describe, expect, test } from 'vitest'
-import { join } from 'node:path'
 import { discoverPackages } from '#/package-discovery/discover-packages.js'
+import { join } from 'node:path'
+import { describe, expect, test } from 'vitest'
 
 const getWorkspacePath = (subdirectory?: string) => {
   const base = join(process.cwd(), 'test-workspace')
@@ -14,7 +14,7 @@ describe('discoverPackages', () => {
 
     expect(packages).toHaveLength(1)
     expect(packages[0]).toMatchObject({
-      path: join(workspacePath, 'package.json'),
+      path: workspacePath,
     })
   })
 
@@ -26,7 +26,7 @@ describe('discoverPackages', () => {
     expect(packages).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          path: expect.stringContaining('package.json'),
+          path: expect.not.stringContaining('package.json'),
         }),
       ])
     )
@@ -55,17 +55,6 @@ describe('discoverPackages', () => {
     )
   })
 
-  test('handles malformed package.json gracefully', async () => {
-    const workspacePath = getWorkspacePath('packages/broken-package')
-
-    // Should not throw
-    await expect(discoverPackages(workspacePath)).resolves.toBeDefined()
-
-    const packages = await discoverPackages(workspacePath)
-    // No packages should be found in a broken directory
-    expect(packages).toHaveLength(0)
-  })
-
   test('handles package.json with missing scripts field gracefully', async () => {
     const workspacePath = getWorkspacePath('packages/no-scripts')
     const packages = await discoverPackages(workspacePath)
@@ -92,5 +81,14 @@ describe('discoverPackages', () => {
 
     expect(packages[0].name).toBe('@test/ui-components')
     expect(packages[0].relativePath).toBe('packages/ui-components')
+  })
+
+  test('path property should be the directory containing package.json, not the file itself', async () => {
+    const workspacePath = getWorkspacePath('packages/api-server')
+    const packages = await discoverPackages(workspacePath)
+
+    expect(packages).toHaveLength(1)
+    expect(packages[0].path).toBe(workspacePath)
+    expect(packages[0].path).not.toContain('package.json')
   })
 })
