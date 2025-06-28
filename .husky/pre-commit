@@ -1,0 +1,70 @@
+#!/usr/bin/env sh
+
+echo "🚀 Running pre-commit validation..."
+
+# Count staged files for performance warning
+STAGED_COUNT=$(git diff --cached --name-only | wc -l)
+
+if [ $STAGED_COUNT -gt 50 ]; then
+  echo "⚠️  Warning: You're committing ${STAGED_COUNT} files."
+  echo "   Consider breaking this into smaller commits for better history."
+  echo ""
+fi
+
+# Run lint-staged for formatting and linting on staged files
+echo "📝 Running lint-staged on staged files..."
+pnpm exec lint-staged
+
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ Lint-staged validation failed!"
+  echo ""
+  echo "📋 Quick fixes:"
+  echo "  • Linting errors: Run 'pnpm lint:fix' to automatically fix issues"
+  echo "  • Formatting errors: Run 'pnpm format:fix' to automatically fix issues"
+  echo ""
+  echo "💡 Tip: lint-staged temporarily stashes unstaged changes while running."
+  echo "   If you see unexpected behavior, check your unstaged changes."
+  echo ""
+  exit 1
+fi
+
+# Run type checking on the whole project (required for TypeScript)
+echo "🔍 Running type checking..."
+pnpm types:check
+
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ Type checking failed!"
+  echo ""
+  echo "📋 To fix:"
+  echo "  • Run 'pnpm types:check' to see detailed type errors"
+  echo "  • Fix the type errors in your editor"
+  echo ""
+  echo "⚠️  Note: Type checking runs on the entire project, not just staged files."
+  echo "   Ensure your unstaged changes don't have type errors."
+  echo ""
+  exit 1
+fi
+
+# Run tests
+echo "🧪 Running tests..."
+pnpm test
+
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ Tests failed!"
+  echo ""
+  echo "📋 To fix:"
+  echo "  • Run 'pnpm test' to see failing tests"
+  echo "  • Fix the failing tests before committing"
+  echo ""
+  exit 1
+fi
+
+echo ""
+echo "✅ All pre-commit checks passed!"
+echo ""
+echo "💡 For faster iteration during development, you can use:"
+echo "   • 'pnpm quick-validate' - Runs only linting and formatting (fast)"
+echo "   • 'pnpm validate' - Runs the full validation suite"

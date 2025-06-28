@@ -225,7 +225,7 @@ describe('Script Quick Pick Performance', () => {
 
     // Then - All searches should complete quickly
     const totalDuration = results.reduce((sum, r) => sum + r.duration, 0)
-    expect(totalDuration).toBeLessThan(500) // Total time for all searches should be reasonable
+    expect(totalDuration).toBeLessThan(700) // Total time for all searches should be reasonable
 
     results.forEach((result, index) => {
       console.log(

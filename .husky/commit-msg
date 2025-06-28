@@ -1,0 +1,35 @@
+#!/usr/bin/env sh
+
+echo "🔍 Validating commit message..."
+
+# Run commitlint on the commit message
+pnpm exec --no-install commitlint --edit "$1"
+
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ Commit message validation failed!"
+  echo ""
+  echo "📋 Commit message format:"
+  echo "  type(scope): description"
+  echo ""
+  echo "📝 Valid types:"
+  echo "  • feat: A new feature"
+  echo "  • fix: A bug fix"
+  echo "  • docs: Documentation only changes"
+  echo "  • style: Changes that don't affect code meaning"
+  echo "  • refactor: Code change that neither fixes a bug nor adds a feature"
+  echo "  • perf: Performance improvements"
+  echo "  • test: Adding or updating tests"
+  echo "  • build: Changes to build system or dependencies"
+  echo "  • ci: Changes to CI configuration files and scripts"
+  echo "  • chore: Other changes that don't modify src or test files"
+  echo "  • revert: Reverts a previous commit"
+  echo ""
+  echo "⚠️  Remember: No AI attribution messages allowed!"
+  echo ""
+  echo "💡 Example: feat(script-runner): add support for yarn workspaces"
+  echo ""
+  exit 1
+fi
+
+echo "✅ Commit message is valid!"
