@@ -12,7 +12,6 @@ export const activate = (context: vscode.ExtensionContext): void => {
   const disposable = vscode.commands.registerCommand(
     'vscode-package-json-script-runner.runScript',
     async () => {
-      // Prevent concurrent executions
       if (isExecuting) {
         vscode.window.showInformationMessage(
           'A script is already running. Please wait for it to complete.'
@@ -67,6 +66,4 @@ export const activate = (context: vscode.ExtensionContext): void => {
   context.subscriptions.push(disposable)
 }
 
-export const deactivate = (): void => {
-  // Extension cleanup if needed
-}
+export const deactivate = (): void => {}

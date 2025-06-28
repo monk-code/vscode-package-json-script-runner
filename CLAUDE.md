@@ -8,72 +8,7 @@ I follow Test-Driven Development (TDD) with a strong emphasis on behavior-driven
 
 ## 🎯 Project Overview
 
-**Tech Stack**: Vue 3, Monorepo, TypeScript, Vite, @tanstack/vue-query, TailwindCSS, Turborepo, pnpm, openapi, asyncapi, fp-ts, ramda, biome, prettier
 **Principles**: TDD, Functional Programming, Declarative Code, Component-Driven Development
-
-## 📦 Monorepo Structure
-
-```
-├── apps/
-│   ├── web/              # Main Vue 3 application
-│   └── storybook/        # Component documentation. Collects component stories from all packages.
-├── packages/
-│   ├── api-components/   # Vue component wrappers for API queries (see api-queries and api-data)
-│   ├── api-constants/    # API-related constants and enums
-│   ├── api-data/         # Wrapper around the queries from api-queries with easy structures for data access
-│   ├── api-generators/   # Mock data generators for API types (REST + websocket live data) - Use this for tests and mock data
-│   ├── api-queries/      # Data fetching hooks and queries (@tanstack/vue-query). Uses client-openapi client for REST API
-│   ├── api-utils/        # Shared API utilities in a fp style
-│   ├── api-validators/   # Zod schemas for the api as defined in client-openapi
-│   ├── app-components/   # App-specific Vue components (depends on the REST and WebSocket API)
-│   ├── app-composables/  # App-specific Vue composables
-│   ├── app-constants/    # App-specific constants (e.g. html element dimensions, etc...)
-│   ├── client-asyncapi/  # Generated WebSocket types and clients
-│   ├── client-openapi/   # Generated API client including TS types from OpenAPI spec
-│   ├── config-biome/     # Shared Biome configuration
-│   ├── config-tailwind/  # Shared Tailwind CSS configuration
-│   ├── config-typescript/# Shared TypeScript configuration
-│   ├── config-vitest/    # Shared Vitest configuration
-│   ├── mock-data/        # Raw mock data for use by the mock-server and testing
-│   ├── mock-server/      # Mock API server for development (using miragejs)
-│   ├── mock-websockets/  # Mock WebSocket server for development
-│   ├── mono-cli/         # CLI tools for the monorepo
-│   ├── scripts-shared/   # Shared scripts for build and deployment
-│   ├── types/            # Shared global TypeScript types
-│   ├── ui-css/           # CSS utilities and styles
-│   ├── ui-icons/         # SVG icons as Vue components
-│   ├── ui-vue/           # UI component library (Vue 3). Contains base elements without reliance on the api.
-│   ├── utils-firebase/   # Firebase utilities
-│   ├── utils-ts/         # Shared TypeScript utilities (fp-style)
-│   └── utils-websockets/ # WebSocket utilities (Vue composable for easy live data access)
-```
-
-## 🚀 Essential Commands
-
-```bash
-# Development
-pnpm dev                 # Start web app + emulator
-pnpm storybook:dev       # Start Storybook
-
-# Testing & Validation
-pnpm validate            # Run all checks (format, lint, types, tests, build)
-pnpm test:unit           # Run unit tests
-pnpm validate:web        # Validate only web app
-
-# Code Quality
-pnpm format              # Check formatting
-pnpm format:fix          # Fix formatting
-pnpm lint                # Run linting
-pnpm types:check         # TypeScript checks
-
-# Building
-pnpm build               # Build all packages
-pnpm build:web:prod      # Production build
-
-# Package-specific validation
-turbo run validate --filter=@bright/api-utils
-turbo run test:unit --filter=@bright/ui-vue...  # Include dependents
-```
 
 ## Quick Reference
 

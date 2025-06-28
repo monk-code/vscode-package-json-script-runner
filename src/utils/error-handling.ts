@@ -13,7 +13,6 @@ export const formatUserError = (error: unknown, context: string): string => {
     return `${prefix} ${error}`
   }
 
-  // Handle Node.js error objects with code property
   if (typeof error === 'object' && error !== null && 'code' in error) {
     const nodeError = error as { code: string; path?: string }
 

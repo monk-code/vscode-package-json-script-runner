@@ -10,7 +10,7 @@
         "${workspaceFolder}/test-workspace"
       ],
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
-      "preLaunchTask": "${workspaceFolder}:build"
+      "preLaunchTask": "build"
     }
   ]
 }

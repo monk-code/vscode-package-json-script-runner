@@ -12,7 +12,6 @@ export const executeScript = async (
   let command: string
 
   try {
-    // Step 1: Detect the package manager
     packageManager = await detectPackageManager(workspacePath)
   } catch (error) {
     const formattedError = formatUserError(error, 'detecting package manager')
@@ -20,7 +19,6 @@ export const executeScript = async (
   }
 
   try {
-    // Step 2: Generate the appropriate command
     command = await generateCommand(script, packageManager, workspacePath)
   } catch (error) {
     const formattedError = formatUserError(error, 'generating command')
@@ -28,7 +26,6 @@ export const executeScript = async (
   }
 
   try {
-    // Step 3: Execute the command in a terminal
     await createAndExecuteInTerminal(
       command,
       script.packageName,

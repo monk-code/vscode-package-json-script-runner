@@ -29,7 +29,6 @@ const parsePackageJson = async (
 }
 
 const findWorkspaceRoot = async (startPath: string): Promise<string> => {
-  // Walk up the directory tree to find a package.json with workspaces field
   let currentPath = startPath
 
   while (currentPath !== '/') {
@@ -38,23 +37,18 @@ const findWorkspaceRoot = async (startPath: string): Promise<string> => {
       const content = await fs.readFile(packageJsonPath, 'utf8')
       const packageData = JSON.parse(content)
 
-      // Check if this is a workspace root (has workspaces field)
       if (packageData.workspaces) {
         return currentPath
       }
-    } catch {
-      // No package.json or invalid JSON, continue searching
-    }
+    } catch {}
 
-    // Move up one directory
     const parentPath = join(currentPath, '..')
     if (parentPath === currentPath) {
-      break // Reached root
+      break
     }
     currentPath = parentPath
   }
 
-  // If no workspace root found, use the startPath itself
   return startPath
 }
 

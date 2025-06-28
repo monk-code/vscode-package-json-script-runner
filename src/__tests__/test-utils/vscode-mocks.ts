@@ -196,16 +196,23 @@ const createMockEnvironmentVariableCollection =
     [Symbol.iterator]: vi.fn(),
   })
 
-const createMockExtension = <T = unknown>(): vscode.Extension<T> => ({
-  id: 'mock-extension',
-  extensionUri: createMockUri(''),
-  extensionPath: '',
-  isActive: true,
-  packageJSON: {},
-  exports: undefined as T,
-  activate: vi.fn(() => Promise.resolve(undefined as T)),
-  extensionKind: 1, // ExtensionKind.UI
-})
+const createMockExtension = <T = unknown>(): vscode.Extension<T> => {
+  // Type assertion is necessary here for mocking purposes.
+  // We need to satisfy the generic type T which could be any type,
+  // but in tests we often don't care about the actual exports value.
+  const mockExports = undefined as unknown as T
+
+  return {
+    id: 'mock-extension',
+    extensionUri: createMockUri(''),
+    extensionPath: '',
+    isActive: true,
+    packageJSON: {},
+    exports: mockExports,
+    activate: vi.fn(() => Promise.resolve(mockExports)),
+    extensionKind: 1, // ExtensionKind.UI
+  }
+}
 
 const createMockLanguageModelAccessInformation =
   (): vscode.LanguageModelAccessInformation => ({

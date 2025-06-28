@@ -33,7 +33,7 @@
     "out",
     "dist",
     "test-workspace",
-    "vitest.config.ts",
+    "vitest.config.mts",
     "esbuild.config.mjs"
   ]
 }

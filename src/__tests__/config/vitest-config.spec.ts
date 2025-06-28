@@ -4,7 +4,7 @@ import { join } from 'node:path'
 
 describe('Vitest Configuration', () => {
   test('should use spec.ts naming convention', async () => {
-    const vitestConfigPath = join(__dirname, '../../../vitest.config.ts')
+    const vitestConfigPath = join(__dirname, '../../../vitest.config.mts')
     expect(existsSync(vitestConfigPath)).toBe(true)
 
     // Import the config dynamically
@@ -17,7 +17,7 @@ describe('Vitest Configuration', () => {
   })
 
   test('should have proper test environment configured', async () => {
-    const vitestConfigPath = join(__dirname, '../../../vitest.config.ts')
+    const vitestConfigPath = join(__dirname, '../../../vitest.config.mts')
     const config = await import(vitestConfigPath)
     const testConfig = config.default.test
 

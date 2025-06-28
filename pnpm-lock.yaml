@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       fuse.js:
-        specifier: ^7.1.0
+        specifier: ^7.0.0
         version: 7.1.0
     devDependencies:
       '@biomejs/biome':

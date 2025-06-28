@@ -49,10 +49,9 @@
     "lint:fix": "biome lint --write .",
     "format": "biome format .",
     "format:fix": "biome format --write .",
-    "validate": "run-s types:check lint format test"
+    "validate": "run-s types:check lint format test build"
   },
   "keywords": [
-    "monorepo",
     "package.json",
     "scripts",
     "npm",
@@ -67,7 +66,7 @@
   "license": "MIT",
   "packageManager": "pnpm@10.4.1",
   "dependencies": {
-    "fuse.js": "^7.1.0"
+    "fuse.js": "^7.0.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.5",

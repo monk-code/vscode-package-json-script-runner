@@ -13,9 +13,9 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "problemMatcher": ["$tsc"],
-      "label": "npm: build",
-      "detail": "tsc -p ."
+      "problemMatcher": [],
+      "label": "build",
+      "detail": "node esbuild.config.mjs"
     }
   ]
 }

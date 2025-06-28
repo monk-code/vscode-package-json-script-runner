@@ -75,4 +75,42 @@ describe('createScriptQuickPickItems and fuzzy search', () => {
     const noResults = fuse.search('xyz123')
     expect(noResults).toHaveLength(0)
   })
+
+  test('fuzzy search with multiple keys handles single word searches', () => {
+    // Create items like in the actual implementation
+    const allItems = mockPackages.flatMap((pkg) =>
+      Object.entries(pkg.scripts ?? {}).map(([scriptName, scriptCommand]) => ({
+        label: scriptName,
+        description: pkg.name,
+        detail: scriptCommand,
+        packageName: pkg.name,
+        packagePath: pkg.path,
+        scriptName,
+        scriptCommand,
+      }))
+    )
+
+    // Set up fuzzy search with multiple keys like the updated implementation
+    const fuse = new Fuse(allItems, {
+      keys: ['scriptName', 'packageName'],
+      threshold: 0.3,
+    })
+
+    // Test that single word searches still work with fuzzy matching
+    const startResults = fuse.search('start')
+    expect(startResults.length).toBe(1)
+    expect(startResults[0].item.scriptName).toBe('start')
+
+    // Test fuzzy match for partial package name
+    const apiResults = fuse.search('api')
+    expect(apiResults.length).toBeGreaterThan(0)
+    expect(apiResults[0].item.packageName).toContain('api')
+
+    // Test that threshold still works for typos
+    const buildTypoResults = fuse.search('buld') // typo in 'build'
+    expect(buildTypoResults.length).toBeGreaterThan(0)
+    expect(buildTypoResults.some((r) => r.item.scriptName === 'build')).toBe(
+      true
+    )
+  })
 })
