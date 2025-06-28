@@ -3,10 +3,11 @@ import { promises as fs } from 'node:fs'
 
 import type { PackageManager } from '#/package-manager/package-manager-types.js'
 
-// Mock fs.access to simulate file existence
+// Mock fs.access and fs.readFile to simulate file operations
 vi.mock('node:fs', () => ({
   promises: {
     access: vi.fn(),
+    readFile: vi.fn(),
   },
 }))
 
@@ -15,6 +16,13 @@ const mockFs = vi.mocked(fs)
 describe('detectPackageManager', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // By default, mock package.json without packageManager field
+    mockFs.readFile.mockResolvedValue(
+      JSON.stringify({
+        name: 'test-project',
+        version: '1.0.0',
+      })
+    )
   })
 
   test('detects pnpm when pnpm-lock.yaml exists', async () => {
@@ -186,5 +194,31 @@ describe('detectPackageManager', () => {
     expect(mockFs.access).toHaveBeenCalledWith(
       'test/fixtures/monorepo/pnpm-lock.yaml'
     )
+  })
+
+  test('continues working without packageManager field (backward compatibility)', async () => {
+    const { detectPackageManager } = await import(
+      '#/package-manager/detect-package-manager.js'
+    )
+
+    // These tests verify that the function still works correctly
+    // when no packageManager field is present, maintaining backward compatibility
+
+    // Mock no package.json exists
+    mockFs.readFile.mockRejectedValueOnce(
+      new Error('ENOENT: no such file or directory')
+    )
+
+    // Mock yarn.lock exists
+    mockFs.access.mockImplementation(async (path) => {
+      if (String(path).includes('yarn.lock')) {
+        return // File exists
+      }
+      throw new Error('ENOENT: no such file or directory')
+    })
+
+    const result = await detectPackageManager('/test/workspace')
+
+    expect(result).toBe('yarn' as PackageManager)
   })
 })

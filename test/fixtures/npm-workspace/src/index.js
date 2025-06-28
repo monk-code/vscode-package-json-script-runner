@@ -1,1 +1,1 @@
-console.log('NPM test project');
+console.log('NPM test project')

@@ -11,7 +11,10 @@
     "lint": "echo \"Linting with npm\"",
     "clean": "echo \"Cleaning with npm\""
   },
-  "keywords": ["test", "npm"],
+  "keywords": [
+    "test",
+    "npm"
+  ],
   "author": "Test Author",
   "license": "MIT",
   "dependencies": {

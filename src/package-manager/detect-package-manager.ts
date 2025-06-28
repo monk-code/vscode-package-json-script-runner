@@ -18,7 +18,30 @@ const lockFileChecks: Array<{ file: string; manager: PackageManager }> = [
   { file: 'package-lock.json', manager: 'npm' },
 ]
 
-export const detectPackageManager = async (
+const parsePackageManagerField = (field: string): PackageManager | null => {
+  const match = field.match(/^(npm|yarn|pnpm)@/)
+  return match ? (match[1] as PackageManager) : null
+}
+
+const readPackageManagerField = async (
+  workspacePath: string
+): Promise<PackageManager | null> => {
+  try {
+    const packageJsonPath = join(workspacePath, 'package.json')
+    const content = await fs.readFile(packageJsonPath, 'utf-8')
+    const packageData = JSON.parse(content)
+
+    if (packageData.packageManager) {
+      return parsePackageManagerField(packageData.packageManager)
+    }
+
+    return null
+  } catch {
+    return null
+  }
+}
+
+const detectFromLockFiles = async (
   workspacePath: string
 ): Promise<PackageManager> => {
   for (const { file, manager } of lockFileChecks) {
@@ -29,4 +52,17 @@ export const detectPackageManager = async (
   }
 
   return 'npm'
+}
+
+export const detectPackageManager = async (
+  workspacePath: string
+): Promise<PackageManager> => {
+  // First, try to detect from packageManager field
+  const fieldManager = await readPackageManagerField(workspacePath)
+  if (fieldManager) {
+    return fieldManager
+  }
+
+  // Fall back to lock file detection
+  return detectFromLockFiles(workspacePath)
 }
