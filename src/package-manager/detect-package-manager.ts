@@ -57,12 +57,10 @@ const detectFromLockFiles = async (
 export const detectPackageManager = async (
   workspacePath: string
 ): Promise<PackageManager> => {
-  // First, try to detect from packageManager field
   const fieldManager = await readPackageManagerField(workspacePath)
   if (fieldManager) {
     return fieldManager
   }
 
-  // Fall back to lock file detection
   return detectFromLockFiles(workspacePath)
 }

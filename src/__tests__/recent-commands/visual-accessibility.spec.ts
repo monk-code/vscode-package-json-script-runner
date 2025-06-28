@@ -1,0 +1,188 @@
+import { describe, it, expect } from 'vitest'
+import { createRecentQuickPickItems } from '#/recent-commands/create-recent-quick-pick-items.js'
+import type { RecentCommand } from '#/types/recent-command.js'
+
+describe('Recent Commands Visual and Accessibility', () => {
+  describe('visual formatting', () => {
+    it('should format recent items with proper visual hierarchy', () => {
+      const commands: RecentCommand[] = [
+        {
+          scriptName: 'test',
+          packageName: '@company/core-lib',
+          packagePath: './packages/core',
+          scriptCommand: 'vitest --coverage',
+          timestamp: Date.now(),
+        },
+      ]
+
+      const result = createRecentQuickPickItems(commands)
+
+      expect(result[0].label).toBe('$(beaker) test')
+      expect(result[0].description).toBe('Just now')
+      expect(result[0].detail).toBe('@company/core-lib')
+    })
+
+    it('should show relative time in description', () => {
+      const fiveMinutesAgo = Date.now() - 5 * 60 * 1000
+      const commands: RecentCommand[] = [
+        {
+          scriptName: 'build',
+          packageName: 'app',
+          packagePath: './app',
+          scriptCommand: 'vite build',
+          timestamp: fiveMinutesAgo,
+        },
+      ]
+
+      const result = createRecentQuickPickItems(commands)
+
+      expect(result[0].description).toBe('5 minutes ago')
+    })
+
+    it('should format time appropriately for different time ranges', () => {
+      const now = Date.now()
+      const testCases = [
+        { timestamp: now - 30 * 1000, expected: 'Just now' },
+        { timestamp: now - 2 * 60 * 1000, expected: '2 minutes ago' },
+        { timestamp: now - 60 * 60 * 1000, expected: '1 hour ago' },
+        { timestamp: now - 3 * 60 * 60 * 1000, expected: '3 hours ago' },
+        { timestamp: now - 25 * 60 * 60 * 1000, expected: 'Yesterday' },
+        { timestamp: now - 5 * 24 * 60 * 60 * 1000, expected: '5 days ago' },
+      ]
+
+      testCases.forEach(({ timestamp, expected }) => {
+        const commands: RecentCommand[] = [
+          {
+            scriptName: 'test',
+            packageName: 'pkg',
+            packagePath: './pkg',
+            scriptCommand: 'test',
+            timestamp,
+          },
+        ]
+
+        const result = createRecentQuickPickItems(commands)
+        expect(result[0].description).toBe(expected)
+      })
+    })
+
+    it('should show package path in detail field', () => {
+      const commands: RecentCommand[] = [
+        {
+          scriptName: 'dev',
+          packageName: 'frontend',
+          packagePath: './apps/web/frontend',
+          scriptCommand: 'next dev',
+          timestamp: Date.now(),
+        },
+      ]
+
+      const result = createRecentQuickPickItems(commands)
+
+      expect(result[0].detail).toBe('frontend')
+    })
+  })
+
+  describe('accessibility', () => {
+    it('should provide clear visual structure for screen readers', () => {
+      const commands: RecentCommand[] = [
+        {
+          scriptName: 'test',
+          packageName: 'utils',
+          packagePath: './packages/utils',
+          scriptCommand: 'jest',
+          timestamp: Date.now(),
+        },
+      ]
+
+      const result = createRecentQuickPickItems(commands)
+
+      // VS Code generates aria labels from label, description, and detail
+      expect(result[0].label).toBe('$(beaker) test')
+      expect(result[0].description).toBe('Just now')
+      expect(result[0].detail).toBe('utils')
+    })
+
+    it('should provide clear section separation', () => {
+      const commands: RecentCommand[] = [
+        {
+          scriptName: 'build',
+          packageName: 'app',
+          packagePath: './app',
+          scriptCommand: 'build',
+          timestamp: Date.now(),
+        },
+      ]
+
+      const result = createRecentQuickPickItems(commands)
+      const separator = result[1]
+
+      expect(separator.kind).toBe(-1) // QuickPickItemKind.Separator
+      expect(separator.label).toBe('') // Empty label for separator
+    })
+
+    it('should handle empty recent commands with appropriate message', () => {
+      const result = createRecentQuickPickItems([])
+
+      expect(result).toHaveLength(0)
+    })
+  })
+
+  describe('visual indicators', () => {
+    it('should use different icons for different script types', () => {
+      const commands: RecentCommand[] = [
+        {
+          scriptName: 'test',
+          packageName: 'pkg1',
+          packagePath: './pkg1',
+          scriptCommand: 'vitest',
+          timestamp: Date.now(),
+        },
+        {
+          scriptName: 'build',
+          packageName: 'pkg2',
+          packagePath: './pkg2',
+          scriptCommand: 'vite build',
+          timestamp: Date.now(),
+        },
+        {
+          scriptName: 'dev',
+          packageName: 'pkg3',
+          packagePath: './pkg3',
+          scriptCommand: 'vite dev',
+          timestamp: Date.now(),
+        },
+        {
+          scriptName: 'lint',
+          packageName: 'pkg4',
+          packagePath: './pkg4',
+          scriptCommand: 'biome lint',
+          timestamp: Date.now(),
+        },
+      ]
+
+      const result = createRecentQuickPickItems(commands)
+
+      expect(result[0].label).toBe('$(beaker) test') // test icon
+      expect(result[1].label).toBe('$(package) build') // build icon
+      expect(result[2].label).toBe('$(play) dev') // dev icon
+      expect(result[3].label).toBe('$(check) lint') // lint icon
+    })
+
+    it('should handle custom script names with default icon', () => {
+      const commands: RecentCommand[] = [
+        {
+          scriptName: 'custom:task',
+          packageName: 'app',
+          packagePath: './app',
+          scriptCommand: 'custom task',
+          timestamp: Date.now(),
+        },
+      ]
+
+      const result = createRecentQuickPickItems(commands)
+
+      expect(result[0].label).toBe('$(terminal) custom:task') // default icon
+    })
+  })
+})

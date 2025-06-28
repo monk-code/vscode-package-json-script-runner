@@ -45,10 +45,8 @@ export const executeScriptWithRecent = async (
   recentCommandsManager: RecentCommandsManager,
   workspaceFolder?: string
 ): Promise<void> => {
-  // Execute the script first
   await executeScript(script, workspacePath)
 
-  // Save to recent commands without blocking
   const recentCommand = createRecentCommand(script, workspaceFolder)
   saveRecentCommandAsync(recentCommandsManager, recentCommand)
 }
@@ -69,8 +67,5 @@ const saveRecentCommandAsync = (
   manager: RecentCommandsManager,
   command: RecentCommand
 ): void => {
-  // Fire and forget - don't await
-  manager.addRecentCommand(command).catch(() => {
-    // Silently ignore errors saving recent commands
-  })
+  manager.addRecentCommand(command).catch(() => {})
 }

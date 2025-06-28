@@ -1,9 +1,10 @@
 import Fuse from 'fuse.js'
 import * as vscode from 'vscode'
-
 import type { PackageInfo } from '#/types/package-info.js'
+import type { RecentCommandsManager } from '#/recent-commands/recent-commands-manager.js'
 import type { ScriptQuickPickItem } from '#/types/script-quick-pick-item.js'
 import type { SelectedScript } from '#/types/selected-script.js'
+import { createRecentQuickPickItems } from '#/recent-commands/create-recent-quick-pick-items.js'
 
 const MAX_SEARCH_LENGTH = 200
 // Threshold of 0.15 prevents typos like "startt" from matching "start" while still allowing reasonable fuzzy matches
@@ -47,7 +48,7 @@ export const createScriptQuickPickItems = (
         name: string
         scripts: Record<string, string>
       } => Boolean(pkg.name && pkg.scripts)
-    ) // Only process packages with name and scripts
+    )
     .flatMap((pkg) =>
       Object.entries(pkg.scripts).map(([scriptName, scriptCommand]) => ({
         label: `${scriptName} (${pkg.name})`,
@@ -99,7 +100,6 @@ export const performSearch = (
       const fuseResults = fuse.search(searchTerms[0])
       results = fuseResults.map((result) => result.item)
     } catch {
-      // Handle any Fuse.js errors from special characters
       results = []
     }
   } else {
@@ -164,6 +164,103 @@ export const showScriptPicker = async (
       quickPick.onDidAccept(() => {
         const selection = quickPick.selectedItems[0]
         if (selection?.scriptName && selection?.scriptCommand) {
+          resolve({
+            packageName: selection.packageName,
+            packagePath: selection.packagePath,
+            scriptName: selection.scriptName,
+            scriptCommand: selection.scriptCommand,
+          })
+        } else {
+          resolve(undefined)
+        }
+        cleanup()
+      })
+    )
+
+    disposables.push(
+      quickPick.onDidHide(() => {
+        resolve(undefined)
+        cleanup()
+      })
+    )
+
+    quickPick.show()
+  })
+}
+
+export const showScriptPickerWithRecent = async (
+  packages: readonly PackageInfo[],
+  workspaceRoot: string,
+  recentCommandsManager: RecentCommandsManager
+): Promise<SelectedScript | undefined> => {
+  return new Promise((resolve) => {
+    const quickPick = vscode.window.createQuickPick<
+      ScriptQuickPickItem | vscode.QuickPickItem
+    >()
+
+    quickPick.busy = true
+    quickPick.placeholder = 'Loading scripts...'
+
+    const allItems = createScriptQuickPickItems(packages)
+    let recentItems: Array<ScriptQuickPickItem | vscode.QuickPickItem> = []
+
+    recentCommandsManager
+      .getValidatedRecentCommands(workspaceRoot)
+      .then((recentCommands) => {
+        recentItems = createRecentQuickPickItems(recentCommands)
+        updateQuickPickItems()
+      })
+      .catch(() => {
+        updateQuickPickItems()
+      })
+
+    const updateQuickPickItems = () => {
+      const searchValue = quickPick.value || ''
+      if (searchValue.trim() === '') {
+        quickPick.items = [...recentItems, ...allItems]
+      } else {
+        quickPick.items = performSearch(searchValue, allItems, fuse)
+      }
+    }
+
+    quickPick.items = allItems
+    quickPick.title = 'Run npm Script'
+    quickPick.placeholder =
+      packages.length === 0
+        ? 'No scripts found in workspace'
+        : 'Search for a script to run...'
+    quickPick.matchOnDescription = false
+    quickPick.busy = false
+
+    const fuse = createFuseSearch(allItems)
+
+    const disposables: vscode.Disposable[] = []
+
+    disposables.push(
+      quickPick.onDidChangeValue(() => {
+        Promise.resolve().then(() => {
+          try {
+            updateQuickPickItems()
+          } catch {
+            quickPick.items = [createNoResultsItem()]
+          }
+        })
+      })
+    )
+
+    const cleanup = () => {
+      disposables.forEach((d) => d?.dispose?.())
+      quickPick.dispose()
+    }
+
+    disposables.push(
+      quickPick.onDidAccept(() => {
+        const selection = quickPick.selectedItems[0]
+        if (
+          selection &&
+          'scriptName' in selection &&
+          'scriptCommand' in selection
+        ) {
           resolve({
             packageName: selection.packageName,
             packagePath: selection.packagePath,

@@ -21,6 +21,7 @@ I follow Test-Driven Development (TDD) with a strong emphasis on behavior-driven
 - Small, pure functions
 - TypeScript strict mode always
 - Use const instead of function
+- NO USELESS COMMENTS!!
 
 ## 📂 Development File Management
 
@@ -48,7 +49,7 @@ import type { User } from '#/types'              // 6. Local type imports
 MAGIC WORD: wobbalubbadubdub
 
 
-## Testing 
+## Testing
 
 ### Rules
 - Use *.spec.ts naming convention for test files, not *.test.ts
@@ -127,7 +128,7 @@ IMPORTANT: Run `pnpm types:check` after every finished change to ensure type cor
 ## Generator Usage
 - Always check existing usage of generator functions before implementing
 - Generators from @bright-energy/api-generators return curried functions: `generateX(params)()`
- 
+
 ## 🔧 Working with Vue
 
 ### Vue Component rules
