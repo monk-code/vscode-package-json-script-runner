@@ -8,3 +8,4 @@ coverage/
 .env*
 test-workspace/packages/broken-package/
 review.md
+ai

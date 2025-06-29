@@ -100,7 +100,13 @@
     "quick-validate": "run-s lint format",
     "ci": "run-s types:check lint format test build",
     "pretest": "pnpm build",
-    "prepare": "husky"
+    "prepare": "husky",
+    "package": "vsce package --no-dependencies",
+    "prepare-release": "node scripts/prepare-release.mjs",
+    "prepublish": "pnpm validate",
+    "publish:patch": "vsce publish patch",
+    "publish:minor": "vsce publish minor",
+    "publish:major": "vsce publish major"
   },
   "lint-staged": {
     "*.{ts,mts,mjs}": [
@@ -131,6 +137,7 @@
     "@commitlint/config-conventional": "^19.8.1",
     "@types/node": "^24.0.4",
     "@types/vscode": "^1.101.0",
+    "@vscode/vsce": "^3.6.0",
     "chalk": "^5.4.1",
     "esbuild": "^0.25.5",
     "husky": "^9.1.7",
