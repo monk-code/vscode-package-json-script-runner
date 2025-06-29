@@ -1,6 +1,6 @@
-import { describe, expect, test } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { describe, expect, test } from 'vitest'
 
 describe('package.json configuration', () => {
   const loadPackageJson = (): Record<string, unknown> => {
@@ -83,7 +83,7 @@ describe('package.json configuration', () => {
 
   test('should target compatible VS Code engine version', () => {
     const engines = packageJson.engines as Record<string, string>
-    expect(engines.vscode).toBe('^1.85.0')
+    expect(engines.vscode).toBe('^1.101.0')
   })
 
   test('should have appropriate categories including Task Running', () => {
