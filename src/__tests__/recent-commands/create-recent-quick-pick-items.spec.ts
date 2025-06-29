@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest'
 import { createRecentQuickPickItems } from '#/recent-commands/create-recent-quick-pick-items.js'
 import type { RecentCommand } from '#/types/recent-command.js'
+import { describe, expect, it } from 'vitest'
 
 // QuickPickItemKind is an enum, define it for tests
 const QuickPickItemKind = {
@@ -14,7 +14,7 @@ describe('createRecentQuickPickItems', () => {
     expect(result).toEqual([])
   })
 
-  it('should create quick pick items with history icon', () => {
+  it('should create quick pick items without icons', () => {
     const commands: RecentCommand[] = [
       {
         scriptName: 'test',
@@ -27,11 +27,15 @@ describe('createRecentQuickPickItems', () => {
 
     const result = createRecentQuickPickItems(commands)
 
-    expect(result).toHaveLength(2) // item + separator
+    expect(result).toHaveLength(2) // separator + item
     expect(result[0]).toMatchObject({
-      label: '$(beaker) test',
+      label: 'Recent Commands',
+      kind: QuickPickItemKind.Separator,
+    })
+    expect(result[1]).toMatchObject({
+      label: 'test',
       description: 'Just now',
-      detail: 'core',
+      detail: '$(package) core',
       scriptName: 'test',
       scriptCommand: 'vitest',
       packageName: 'core',
@@ -39,7 +43,7 @@ describe('createRecentQuickPickItems', () => {
     })
   })
 
-  it('should include separator after recent items', () => {
+  it('should include labeled separator before recent items', () => {
     const commands: RecentCommand[] = [
       {
         scriptName: 'test',
@@ -53,9 +57,14 @@ describe('createRecentQuickPickItems', () => {
     const result = createRecentQuickPickItems(commands)
 
     expect(result).toHaveLength(2)
-    expect(result[1]).toMatchObject({
-      label: '',
+    expect(result[0]).toMatchObject({
+      label: 'Recent Commands',
       kind: QuickPickItemKind.Separator,
+    })
+    expect(result[1]).toMatchObject({
+      label: 'test',
+      description: 'Just now',
+      scriptName: 'test',
     })
   })
 
@@ -79,21 +88,26 @@ describe('createRecentQuickPickItems', () => {
 
     const result = createRecentQuickPickItems(commands)
 
-    expect(result).toHaveLength(3) // 2 items + 1 separator
-    expect(result[0].label).toBe('$(beaker) test')
-    expect(result[0].detail).toBe('core')
-    expect(result[1].label).toBe('$(package) build')
-    expect(result[1].detail).toBe('ui')
-    expect(result[2].kind).toBe(QuickPickItemKind.Separator)
+    expect(result).toHaveLength(3) // 1 separator + 2 items
+    expect(result[0]).toMatchObject({
+      label: 'Recent Commands',
+      kind: QuickPickItemKind.Separator,
+    })
+    expect(result[1].label).toBe('test')
+    expect(result[1].description).toBe('Just now')
+    expect(result[1].detail).toBe('$(package) core')
+    expect(result[2].label).toBe('build')
+    expect(result[2].description).toBe('Just now')
+    expect(result[2].detail).toBe('$(package) ui')
   })
 
-  it('should include workspace folder in detail when present', () => {
+  it('should format detail with icons for better visual hierarchy', () => {
     const commands: RecentCommand[] = [
       {
         scriptName: 'test',
-        packageName: 'core',
+        packageName: '@company/core-lib',
         packagePath: './packages/core',
-        scriptCommand: 'vitest',
+        scriptCommand: 'vitest --coverage',
         timestamp: Date.now(),
         workspaceFolder: 'frontend',
       },
@@ -101,7 +115,21 @@ describe('createRecentQuickPickItems', () => {
 
     const result = createRecentQuickPickItems(commands)
 
-    expect(result[0].detail).toBe('core (frontend)')
+    expect(result).toHaveLength(2) // separator + item
+    expect(result[1].label).toBe('test')
+    expect(result[1].description).toBe('Just now')
+    expect(result[1].detail).toBe('$(package) @company/core-lib')
+  })
+
+  it('should not include separator when no recent commands', () => {
+    const result = createRecentQuickPickItems([])
+
+    expect(result).toHaveLength(0)
+    expect(
+      result.find(
+        (item) => 'kind' in item && item.kind === QuickPickItemKind.Separator
+      )
+    ).toBeUndefined()
   })
 
   it('should maintain order from recent commands', () => {
@@ -124,9 +152,10 @@ describe('createRecentQuickPickItems', () => {
 
     const result = createRecentQuickPickItems(commands)
 
-    const item0 = result[0] as { scriptName: string }
+    expect(result).toHaveLength(3) // separator + 2 items
     const item1 = result[1] as { scriptName: string }
-    expect(item0.scriptName).toBe('newer')
-    expect(item1.scriptName).toBe('older')
+    const item2 = result[2] as { scriptName: string }
+    expect(item1.scriptName).toBe('newer')
+    expect(item2.scriptName).toBe('older')
   })
 })

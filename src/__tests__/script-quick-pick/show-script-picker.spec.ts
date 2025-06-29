@@ -1002,9 +1002,10 @@ describe('showScriptPicker', () => {
 
       // Should show recent items along with all items when no search
       const currentItems = quickPick.items as ScriptQuickPickItem[]
-      expect(currentItems.length).toBe(mockRecentItems.length + 9) // 2 recent + 9 regular
+      expect(currentItems.length).toBe(mockRecentItems.length + 1 + 9) // 2 recent + 1 separator + 9 regular
       expect(currentItems[0]).toEqual(mockRecentItems[0])
       expect(currentItems[1]).toEqual(mockRecentItems[1])
+      expect(currentItems[2].label).toBe('All Scripts')
 
       testHelpers.triggerHide()
       await promise
@@ -1052,6 +1053,85 @@ describe('showScriptPicker', () => {
       ).toBe(true)
     })
 
+    test('adds separator between recent and normal items', async () => {
+      const { createRecentQuickPickItems } = await import(
+        '#/recent-commands/create-recent-quick-pick-items.js'
+      )
+      const testHelpers = createTestQuickPick()
+      const quickPick = testHelpers.quickPick
+      vi.mocked(vscode.window.createQuickPick).mockReturnValue(quickPick)
+
+      const mockRecentItems = [
+        {
+          label: 'Recent Commands',
+          kind: vscode.QuickPickItemKind.Separator,
+        },
+        {
+          label: 'test - 2 minutes ago',
+          description: 'core',
+          detail: 'vitest',
+          scriptName: 'test',
+          packageName: 'core',
+          packagePath: './packages/core',
+          scriptCommand: 'vitest',
+        },
+      ]
+
+      const mockRecentCommandsManager = {
+        getValidatedRecentCommands: vi.fn().mockResolvedValue([
+          {
+            scriptName: 'test',
+            packageName: 'core',
+            packagePath: './packages/core',
+            scriptCommand: 'vitest',
+            timestamp: Date.now() - 2 * 60 * 1000,
+          },
+        ]),
+      } as unknown as RecentCommandsManager
+
+      vi.mocked(createRecentQuickPickItems).mockReturnValue(mockRecentItems)
+
+      const promise = showScriptPicker(
+        mockPackages,
+        '/workspace',
+        mockRecentCommandsManager
+      )
+
+      // Wait for async recent commands loading
+      await waitForQuickPickUpdate()
+
+      // Check items structure
+      const currentItems = quickPick.items as Array<
+        ScriptQuickPickItem | vscode.QuickPickItem
+      >
+
+      // Should have: Recent Commands separator + recent items + All Scripts separator + normal items
+      const separatorIndices = currentItems
+        .map((item, index) => ({ item, index }))
+        .filter(
+          ({ item }) =>
+            'kind' in item && item.kind === vscode.QuickPickItemKind.Separator
+        )
+        .map(({ index }) => index)
+
+      expect(separatorIndices.length).toBe(2) // Two separators
+      expect(currentItems[0].label).toBe('Recent Commands')
+
+      // Find the "All Scripts" separator (should be after recent items)
+      const allScriptsSeparatorIndex = separatorIndices[1]
+      expect(currentItems[allScriptsSeparatorIndex].label).toBe('All Scripts')
+
+      // Verify recent items are before "All Scripts" separator
+      expect(currentItems[1].label).toContain('test -')
+
+      // Verify normal items are after "All Scripts" separator
+      const firstNormalItemIndex = allScriptsSeparatorIndex + 1
+      expect(currentItems[firstNormalItemIndex].label).toContain('(')
+
+      testHelpers.triggerHide()
+      await promise
+    })
+
     test('works without recent commands manager (backward compatibility)', async () => {
       const testHelpers = createTestQuickPick()
       const quickPick = testHelpers.quickPick
@@ -1062,6 +1142,67 @@ describe('showScriptPicker', () => {
       // Should show all items without recent section
       const currentItems = quickPick.items as ScriptQuickPickItem[]
       expect(currentItems.length).toBe(9) // Just the regular items
+
+      testHelpers.triggerHide()
+      await promise
+    })
+
+    test('limits recent commands to 5 when more are available', async () => {
+      const { createRecentQuickPickItems } = await import(
+        '#/recent-commands/create-recent-quick-pick-items.js'
+      )
+      const testHelpers = createTestQuickPick()
+      const quickPick = testHelpers.quickPick
+      vi.mocked(vscode.window.createQuickPick).mockReturnValue(quickPick)
+
+      // Create 8 recent commands
+      const mockRecentCommands = Array.from({ length: 8 }, (_, i) => ({
+        scriptName: `script${i}`,
+        packageName: `pkg${i}`,
+        packagePath: `./pkg${i}`,
+        scriptCommand: `cmd${i}`,
+        timestamp: Date.now() - i * 1000,
+      }))
+
+      const mockRecentCommandsManager = {
+        getValidatedRecentCommands: vi
+          .fn()
+          .mockResolvedValue(mockRecentCommands),
+      } as unknown as RecentCommandsManager
+
+      // Mock the createRecentQuickPickItems to be called with sliced commands
+      vi.mocked(createRecentQuickPickItems).mockImplementation((commands) => {
+        if (commands.length === 0) return []
+        return [
+          {
+            label: 'Recent Commands',
+            kind: vscode.QuickPickItemKind.Separator,
+          },
+          ...commands.map((cmd) => ({
+            label: `${cmd.scriptName} Just now`,
+            description: `${cmd.packageName}: ${cmd.scriptCommand}`,
+            detail: '',
+            scriptName: cmd.scriptName,
+            packageName: cmd.packageName,
+            packagePath: cmd.packagePath,
+            scriptCommand: cmd.scriptCommand,
+          })),
+        ]
+      })
+
+      const promise = showScriptPicker(
+        mockPackages,
+        '/workspace',
+        mockRecentCommandsManager
+      )
+
+      // Wait for async recent commands loading
+      await waitForQuickPickUpdate()
+
+      // Verify createRecentQuickPickItems was called with only 5 commands
+      expect(vi.mocked(createRecentQuickPickItems)).toHaveBeenCalledWith(
+        mockRecentCommands.slice(0, 5)
+      )
 
       testHelpers.triggerHide()
       await promise

@@ -143,10 +143,20 @@ export const showScriptPicker = async (
 
     const fuse = createFuseSearch(allItems)
 
+    const createAllScriptsSeparator = (): vscode.QuickPickItem => ({
+      label: 'All Scripts',
+      kind: vscode.QuickPickItemKind.Separator,
+    })
+
     const updateQuickPickItems = () => {
       const searchValue = quickPick.value || ''
       if (searchValue.trim() === '') {
-        quickPick.items = [...recentItems, ...allItems]
+        if (recentItems.length > 0) {
+          const separator = createAllScriptsSeparator()
+          quickPick.items = [...recentItems, separator, ...allItems]
+        } else {
+          quickPick.items = allItems
+        }
       } else {
         quickPick.items = performSearch(searchValue, allItems, fuse)
       }
@@ -157,7 +167,9 @@ export const showScriptPicker = async (
       recentCommandsManager
         .getValidatedRecentCommands(workspaceRoot)
         .then((recentCommands) => {
-          recentItems = createRecentQuickPickItems(recentCommands)
+          // Limit to 5 most recent commands
+          const limitedRecentCommands = recentCommands.slice(0, 5)
+          recentItems = createRecentQuickPickItems(limitedRecentCommands)
           updateQuickPickItems()
         })
         .catch(() => {
@@ -175,7 +187,8 @@ export const showScriptPicker = async (
         Promise.resolve().then(() => {
           try {
             if (value.trim() === '' && recentItems.length > 0) {
-              quickPick.items = [...recentItems, ...allItems]
+              const separator = createAllScriptsSeparator()
+              quickPick.items = [...recentItems, separator, ...allItems]
             } else {
               quickPick.items = performSearch(value, allItems, fuse)
             }

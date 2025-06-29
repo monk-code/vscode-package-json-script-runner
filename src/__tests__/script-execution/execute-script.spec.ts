@@ -409,7 +409,7 @@ describe('executeScript', () => {
       expect(mockRecentCommandsManager.addRecentCommand).toHaveBeenCalledWith({
         scriptName: script.scriptName,
         packageName: script.packageName,
-        packagePath: script.packagePath,
+        packagePath: 'packages/ui-components',
         scriptCommand: script.scriptCommand,
         timestamp: expect.any(Number),
       })
@@ -454,7 +454,7 @@ describe('executeScript', () => {
       expect(mockRecentCommandsManager.addRecentCommand).toHaveBeenCalledWith({
         scriptName: script.scriptName,
         packageName: script.packageName,
-        packagePath: script.packagePath,
+        packagePath: 'packages/ui-components',
         scriptCommand: script.scriptCommand,
         timestamp: expect.any(Number),
         workspaceFolder: workspaceFolder,

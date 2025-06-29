@@ -2,21 +2,9 @@ import type { RecentCommand } from '#/types/recent-command.js'
 import type { ScriptQuickPickItem } from '#/types/script-quick-pick-item.js'
 import type { QuickPickItem } from 'vscode'
 
+// Using hardcoded value because vscode module is mocked in tests
+// This matches vscode.QuickPickItemKind.Separator
 const SEPARATOR_KIND = -1
-
-const SCRIPT_ICONS: Record<string, string> = {
-  test: '$(beaker)',
-  build: '$(package)',
-  dev: '$(play)',
-  start: '$(play)',
-  lint: '$(check)',
-  format: '$(check)',
-  deploy: '$(cloud-upload)',
-  serve: '$(server)',
-  watch: '$(eye)',
-}
-
-const DEFAULT_ICON = '$(terminal)'
 
 export const createRecentQuickPickItems = (
   commands: RecentCommand[]
@@ -25,10 +13,10 @@ export const createRecentQuickPickItems = (
     return []
   }
 
-  const recentItems = commands.map(commandToQuickPickItem)
   const separator = createSeparator()
+  const recentItems = commands.map(commandToQuickPickItem)
 
-  return [...recentItems, separator]
+  return [separator, ...recentItems]
 }
 
 const commandToQuickPickItem = (
@@ -37,7 +25,7 @@ const commandToQuickPickItem = (
   const timeAgo = formatTimeAgo(command.timestamp)
 
   return {
-    label: formatLabel(command.scriptName),
+    label: command.scriptName,
     description: timeAgo,
     detail: formatDetail(command),
     scriptName: command.scriptName,
@@ -47,29 +35,9 @@ const commandToQuickPickItem = (
   }
 }
 
-const formatLabel = (scriptName: string): string => {
-  const icon = getIconForScript(scriptName)
-  return `${icon} ${scriptName}`
+const formatDetail = (command: RecentCommand): string => {
+  return `$(package) ${command.packageName}`
 }
-
-const getIconForScript = (scriptName: string): string => {
-  if (SCRIPT_ICONS[scriptName]) {
-    return SCRIPT_ICONS[scriptName]
-  }
-
-  for (const [keyword, icon] of Object.entries(SCRIPT_ICONS)) {
-    if (scriptName.toLowerCase().includes(keyword)) {
-      return icon
-    }
-  }
-
-  return DEFAULT_ICON
-}
-
-const formatDetail = (command: RecentCommand): string =>
-  command.workspaceFolder
-    ? `${command.packageName} (${command.workspaceFolder})`
-    : command.packageName
 
 const formatTimeAgo = (timestamp: number): string => {
   const now = Date.now()
@@ -91,6 +59,6 @@ const formatTimeAgo = (timestamp: number): string => {
 }
 
 const createSeparator = (): QuickPickItem => ({
-  label: '',
+  label: 'Recent Commands',
   kind: SEPARATOR_KIND,
 })

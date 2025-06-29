@@ -34,7 +34,7 @@ describe('executeScript with recent commands tracking (legacy tests)', () => {
       scriptName: 'test',
       scriptCommand: 'vitest',
       packageName: 'core',
-      packagePath: './packages/core',
+      packagePath: '/workspace/packages/core',
     }
 
     const { executeScript } = await import(
@@ -49,7 +49,7 @@ describe('executeScript with recent commands tracking (legacy tests)', () => {
     expect(mockRecentCommandsManager.addRecentCommand).toHaveBeenCalledWith({
       scriptName: 'test',
       packageName: 'core',
-      packagePath: './packages/core',
+      packagePath: 'packages/core',
       scriptCommand: 'vitest',
       timestamp: expect.any(Number),
     })
@@ -60,7 +60,7 @@ describe('executeScript with recent commands tracking (legacy tests)', () => {
       scriptName: 'test',
       scriptCommand: 'vitest',
       packageName: 'core',
-      packagePath: './packages/core',
+      packagePath: '/workspace/packages/core',
     }
 
     const { executeScript } = await import(
@@ -80,7 +80,7 @@ describe('executeScript with recent commands tracking (legacy tests)', () => {
     expect(mockRecentCommandsManager.addRecentCommand).toHaveBeenCalledWith({
       scriptName: 'test',
       packageName: 'core',
-      packagePath: './packages/core',
+      packagePath: 'packages/core',
       scriptCommand: 'vitest',
       timestamp: expect.any(Number),
       workspaceFolder: 'frontend',
@@ -92,7 +92,7 @@ describe('executeScript with recent commands tracking (legacy tests)', () => {
       scriptName: 'test',
       scriptCommand: 'vitest',
       packageName: 'core',
-      packagePath: './packages/core',
+      packagePath: '/workspace/packages/core',
     }
 
     let resolveAdd: (() => void) | undefined
@@ -129,7 +129,7 @@ describe('executeScript with recent commands tracking (legacy tests)', () => {
       scriptName: 'test',
       scriptCommand: 'vitest',
       packageName: 'core',
-      packagePath: './packages/core',
+      packagePath: '/workspace/packages/core',
     }
 
     vi.mocked(mockRecentCommandsManager.addRecentCommand).mockRejectedValue(

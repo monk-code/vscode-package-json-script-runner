@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest'
 import { createRecentQuickPickItems } from '#/recent-commands/create-recent-quick-pick-items.js'
 import type { RecentCommand } from '#/types/recent-command.js'
+import { describe, expect, it } from 'vitest'
 
 describe('Recent Commands Visual and Accessibility', () => {
   describe('visual formatting', () => {
@@ -17,9 +17,10 @@ describe('Recent Commands Visual and Accessibility', () => {
 
       const result = createRecentQuickPickItems(commands)
 
-      expect(result[0].label).toBe('$(beaker) test')
-      expect(result[0].description).toBe('Just now')
-      expect(result[0].detail).toBe('@company/core-lib')
+      expect(result).toHaveLength(2) // separator + item
+      expect(result[1].label).toBe('test')
+      expect(result[1].description).toBe('Just now')
+      expect(result[1].detail).toBe('$(package) @company/core-lib')
     })
 
     it('should show relative time in description', () => {
@@ -36,7 +37,10 @@ describe('Recent Commands Visual and Accessibility', () => {
 
       const result = createRecentQuickPickItems(commands)
 
-      expect(result[0].description).toBe('5 minutes ago')
+      expect(result).toHaveLength(2) // separator + item
+      expect(result[1].label).toBe('build')
+      expect(result[1].description).toBe('5 minutes ago')
+      expect(result[1].detail).toBe('$(package) app')
     })
 
     it('should format time appropriately for different time ranges', () => {
@@ -62,7 +66,10 @@ describe('Recent Commands Visual and Accessibility', () => {
         ]
 
         const result = createRecentQuickPickItems(commands)
-        expect(result[0].description).toBe(expected)
+        expect(result).toHaveLength(2) // separator + item
+        expect(result[1].label).toBe('test')
+        expect(result[1].description).toBe(expected)
+        expect(result[1].detail).toBe('$(package) pkg')
       })
     })
 
@@ -79,7 +86,10 @@ describe('Recent Commands Visual and Accessibility', () => {
 
       const result = createRecentQuickPickItems(commands)
 
-      expect(result[0].detail).toBe('frontend')
+      expect(result).toHaveLength(2) // separator + item
+      expect(result[1].label).toBe('dev')
+      expect(result[1].description).toBe('Just now')
+      expect(result[1].detail).toBe('$(package) frontend')
     })
   })
 
@@ -98,9 +108,10 @@ describe('Recent Commands Visual and Accessibility', () => {
       const result = createRecentQuickPickItems(commands)
 
       // VS Code generates aria labels from label, description, and detail
-      expect(result[0].label).toBe('$(beaker) test')
-      expect(result[0].description).toBe('Just now')
-      expect(result[0].detail).toBe('utils')
+      expect(result).toHaveLength(2) // separator + item
+      expect(result[1].label).toBe('test')
+      expect(result[1].description).toBe('Just now')
+      expect(result[1].detail).toBe('$(package) utils')
     })
 
     it('should provide clear section separation', () => {
@@ -115,10 +126,10 @@ describe('Recent Commands Visual and Accessibility', () => {
       ]
 
       const result = createRecentQuickPickItems(commands)
-      const separator = result[1]
+      const separator = result[0]
 
       expect(separator.kind).toBe(-1) // QuickPickItemKind.Separator
-      expect(separator.label).toBe('') // Empty label for separator
+      expect(separator.label).toBe('Recent Commands') // Clear label for separator
     })
 
     it('should handle empty recent commands with appropriate message', () => {
@@ -163,10 +174,11 @@ describe('Recent Commands Visual and Accessibility', () => {
 
       const result = createRecentQuickPickItems(commands)
 
-      expect(result[0].label).toBe('$(beaker) test') // test icon
-      expect(result[1].label).toBe('$(package) build') // build icon
-      expect(result[2].label).toBe('$(play) dev') // dev icon
-      expect(result[3].label).toBe('$(check) lint') // lint icon
+      expect(result).toHaveLength(5) // separator + 4 items
+      expect(result[1].label).toBe('test')
+      expect(result[2].label).toBe('build')
+      expect(result[3].label).toBe('dev')
+      expect(result[4].label).toBe('lint')
     })
 
     it('should handle custom script names with default icon', () => {
@@ -182,7 +194,8 @@ describe('Recent Commands Visual and Accessibility', () => {
 
       const result = createRecentQuickPickItems(commands)
 
-      expect(result[0].label).toBe('$(terminal) custom:task') // default icon
+      expect(result).toHaveLength(2) // separator + item
+      expect(result[1].label).toBe('custom:task')
     })
   })
 })

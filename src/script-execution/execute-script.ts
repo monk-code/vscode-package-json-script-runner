@@ -4,6 +4,7 @@ import { createAndExecuteInTerminal } from '#/script-execution/terminal-manager.
 import type { SelectedScript } from '#/types/selected-script.js'
 import { formatUserError } from '#/utils/error-handling.js'
 import type { RecentCommandsManager } from '#/recent-commands/recent-commands-manager.js'
+import * as path from 'node:path'
 import type { RecentCommand } from '#/types/recent-command.js'
 
 export const executeScript = async (
@@ -41,18 +42,23 @@ export const executeScript = async (
   }
 
   if (recentCommandsManager) {
-    const recentCommand = createRecentCommand(script, workspaceFolder)
+    const recentCommand = createRecentCommand(
+      script,
+      workspacePath,
+      workspaceFolder
+    )
     saveRecentCommandAsync(recentCommandsManager, recentCommand)
   }
 }
 
 const createRecentCommand = (
   script: SelectedScript,
+  workspacePath: string,
   workspaceFolder?: string
 ): RecentCommand => ({
   scriptName: script.scriptName,
   packageName: script.packageName,
-  packagePath: script.packagePath,
+  packagePath: path.relative(workspacePath, script.packagePath),
   scriptCommand: script.scriptCommand,
   timestamp: Date.now(),
   ...(workspaceFolder && { workspaceFolder }),
