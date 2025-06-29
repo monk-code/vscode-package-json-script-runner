@@ -24,14 +24,15 @@ describe('Biome Configuration', () => {
     expect(packageJson.scripts.validate).toBeDefined()
   })
 
-  test('validate script should include all checks', () => {
+  test('validate script should use custom validation script', () => {
     const packageJsonPath = join(__dirname, '../../../package.json')
     const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
 
     const validateScript = packageJson.scripts.validate
-    expect(validateScript).toContain('types:check')
-    expect(validateScript).toContain('lint')
-    expect(validateScript).toContain('format')
-    expect(validateScript).toContain('test')
+    expect(validateScript).toBe('node scripts/validate.mjs')
+
+    // Verify the validation script exists
+    const validateScriptPath = join(__dirname, '../../../scripts/validate.mjs')
+    expect(existsSync(validateScriptPath)).toBe(true)
   })
 })

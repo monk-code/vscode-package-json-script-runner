@@ -1,6 +1,7 @@
+import { describe, expect, it } from 'vitest'
+
 import { createRecentQuickPickItems } from '#/recent-commands/create-recent-quick-pick-items.js'
 import type { RecentCommand } from '#/types/recent-command.js'
-import { describe, expect, it } from 'vitest'
 
 // QuickPickItemKind is an enum, define it for tests
 const QuickPickItemKind = {

@@ -1,6 +1,7 @@
+import type { QuickPickItem } from 'vscode'
+
 import type { RecentCommand } from '#/types/recent-command.js'
 import type { ScriptQuickPickItem } from '#/types/script-quick-pick-item.js'
-import type { QuickPickItem } from 'vscode'
 
 // Using hardcoded value because vscode module is mocked in tests
 // This matches vscode.QuickPickItemKind.Separator
