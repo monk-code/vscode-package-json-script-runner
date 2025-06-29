@@ -1,286 +1,149 @@
-# Contributing to VS Code Package.json Script Runner
+# Contributing to VSCode Package JSON Script Runner
 
-Thank you for your interest in contributing! This guide will help you get started with development.
+We welcome contributions from the community! Please follow these guidelines to ensure a smooth development process.
 
-## 📋 Table of Contents
-
-- [Development Setup](#development-setup)
-- [Development Workflow](#development-workflow)
-- [Commit Message Guidelines](#commit-message-guidelines)
-- [Code Quality Standards](#code-quality-standards)
-- [Git Hooks and Automation](#git-hooks-and-automation)
-- [Platform-Specific Instructions](#platform-specific-instructions)
-- [Troubleshooting](#troubleshooting)
-- [Quick Validation Mode](#quick-validation-mode)
-
-## 🚀 Development Setup
+## 🛠️ Development
 
 ### Prerequisites
 
-- Node.js 20.x or 22.x
-- pnpm 10.4.1 (automatically installed via corepack if not present)
-- Git
-- VS Code (for extension development)
+- Node.js (v18 or higher)
+- pnpm (v8 or higher)
+- Visual Studio Code
 
-### Initial Setup
+### Setup
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/bright-energy/vscode-package-json-script-runner.git
-   cd vscode-package-json-script-runner
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/bright-energy/vscode-package-json-script-runner.git
+cd vscode-package-json-script-runner
 
-2. **Install dependencies**
-   ```bash
-   pnpm install
-   ```
+# Install dependencies
+pnpm install
 
-3. **Verify setup**
-   ```bash
-   pnpm validate
-   ```
-
-Git hooks will be automatically installed via Husky during the installation process.
-
-## 🔄 Development Workflow
-
-### Core Principles
-
-This project follows **Test-Driven Development (TDD)**. This is non-negotiable:
-
-1. **RED**: Write a failing test for the desired behavior
-2. **GREEN**: Write the minimum code to make the test pass
-3. **REFACTOR**: Improve the code while keeping tests green
+# Build the extension
+pnpm build
+```
 
 ### Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `pnpm test` | Run tests once |
-| `pnpm test:watch` | Run tests in watch mode |
-| `pnpm types:check` | Check TypeScript types |
-| `pnpm lint` | Check linting issues |
-| `pnpm lint:fix` | Auto-fix linting issues |
-| `pnpm format` | Check formatting |
-| `pnpm format:fix` | Auto-fix formatting |
-| `pnpm build` | Build the extension |
-| `pnpm validate` | Run full validation suite |
-| `pnpm quick-validate` | Run only lint and format (fast) |
-
-### Development Flow
-
-1. Create a new branch for your feature/fix
-2. Write tests first (TDD)
-3. Implement the feature
-4. Run `pnpm validate` to ensure everything passes
-5. Commit your changes (hooks will validate automatically)
-6. Push and create a pull request
-
-## 📝 Commit Message Guidelines
-
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-### Format
-```
-type(scope): description
-
-[optional body]
-
-[optional footer(s)]
-```
-
-### Types
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting, etc.)
-- `refactor`: Code refactoring
-- `perf`: Performance improvements
-- `test`: Test additions or updates
-- `build`: Build system changes
-- `ci`: CI/CD changes
-- `chore`: Other maintenance tasks
-- `revert`: Revert a previous commit
-
-### Examples
 ```bash
-feat(script-runner): add support for yarn workspaces
-fix(search): correct fuzzy search scoring algorithm
-docs: update API documentation
-test(picker): add tests for edge cases
+# Build
+pnpm build              # Compile TypeScript to JavaScript
+
+# Testing
+pnpm test               # Run tests once
+pnpm test:watch         # Run tests in watch mode
+
+# Code Quality
+pnpm validate           # Run all checks (types, lint, format, tests)
+pnpm types:check        # TypeScript type checking
+pnpm lint               # Run linter
+pnpm lint:fix           # Fix linting issues
+pnpm format             # Check formatting
+pnpm format:fix         # Fix formatting issues
 ```
 
-### Important Rules
-- **NO AI ATTRIBUTION**: Never include "Generated with Claude" or similar messages
-- Keep the subject line under 72 characters
-- Use present tense ("add" not "added")
-- Reference issues when applicable
+### Testing the Extension Locally
 
-## 🔧 Code Quality Standards
+1. **Open the project in VSCode**
+   ```bash
+   code vscode-package-json-script-runner
+   ```
 
-### TypeScript
-- Strict mode is enforced
-- No `any` types
-- No type assertions without justification
-- Use `const` arrow functions
+2. **Build the extension**
+   ```bash
+   pnpm build
+   ```
 
-### Testing
-- 100% behavior coverage expected
-- Use `*.spec.ts` naming convention
-- Test behavior, not implementation
-- No testing of internal details
+3. **Start debugging**
+   - Press `F5` or go to Run → Start Debugging
+   - This will:
+     - Compile the TypeScript code
+     - Launch a new VSCode window (Extension Development Host)
+     - Load your extension in this new window
+     - Open the test-workspace folder automatically
+
+4. **Test the extension**
+   - In the Extension Development Host window:
+     - Press `Ctrl+Shift+R` / `Cmd+Shift+R` to activate the extension
+     - You should see scripts from the test-workspace packages
+     - Select a script to run it
+
+5. **Debug your code**
+   - Set breakpoints in the source code (src/ folder)
+   - The debugger will pause at breakpoints when you use the extension
+   - Use the Debug Console to inspect variables
+
+### Understanding the Debug Configuration
+
+The `.vscode/launch.json` configuration:
+- **"Run Extension"**: Launches the Extension Development Host
+- **preLaunchTask**: Automatically builds the extension before debugging
+- **args**: Opens the test-workspace folder for testing
+- **outFiles**: Maps compiled JavaScript back to TypeScript for debugging
+
+## 📁 Codebase Overview
+
+### Project Structure
+
+```
+├── src/                      # Source code
+│   ├── extension/           # Extension entry point and activation
+│   ├── package-discovery/   # Logic for finding package.json files
+│   ├── package-manager/     # Package manager detection (npm/yarn/pnpm)
+│   ├── script-execution/    # Script execution and command generation
+│   ├── script-quick-pick/   # UI for script selection
+│   ├── types/              # TypeScript type definitions
+│   └── utils/              # Utility functions
+├── test-workspace/         # Sample monorepo for testing
+├── __tests__/             # Test files
+└── out/                   # Compiled JavaScript output
+```
+
+### Key Components
+
+#### Extension Entry (`src/extension/extension.ts`)
+- Registers the `runScript` command
+- Coordinates the overall flow
+
+#### Package Discovery (`src/package-discovery/`)
+- Recursively finds all package.json files
+- Excludes node_modules and hidden directories
+- Returns package metadata
+
+#### Script Quick Pick (`src/script-quick-pick/`)
+- Creates the fuzzy-searchable UI
+- Uses Fuse.js for intelligent search
+- Formats items with package context
+
+#### Script Execution (`src/script-execution/`)
+- Detects the appropriate package manager
+- Generates correct commands for monorepo contexts
+- Manages VSCode terminal creation
+
+### Architecture Decisions
+
+1. **TypeScript with Strict Mode**: Ensures type safety and better IDE support
+2. **Functional Approach**: Pure functions where possible, immutable data
+3. **Modular Design**: Each component has a single responsibility
+4. **Comprehensive Testing**: Unit tests for all business logic
+5. **Modern ESM**: Uses ES modules for better tree-shaking and standards compliance
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. **Fork the repository** and create your branch from `main`
+2. **Write tests** for any new functionality
+3. **Ensure all tests pass**: Run `pnpm validate`
+4. **Follow the code style**: The project uses Biome for linting and formatting
+5. **Update documentation** as needed
+6. **Submit a Pull Request** with a clear description
 
 ### Code Style
-- Self-documenting code (minimal comments)
-- Small, focused functions
-- Immutable data patterns
-- Early returns over nested conditionals
 
-## 🪝 Git Hooks and Automation
-
-### Pre-commit Hook
-
-The pre-commit hook runs automatically and performs:
-
-1. **Lint-staged** on staged files
-   - Formats TypeScript files
-   - Runs linting with auto-fix
-   
-2. **Type checking** on the entire project
-   
-3. **Tests** to ensure nothing is broken
-
-**Note**: Lint-staged temporarily stashes unstaged changes while running. If you see unexpected behavior, check your unstaged changes.
-
-### Commit-msg Hook
-
-Validates commit messages against conventional commit format and blocks AI attributions.
-
-### Bypassing Hooks (Emergency Only)
-
-```bash
-git commit --no-verify
-```
-
-⚠️ Use sparingly and ensure code quality before pushing!
-
-## 💻 Platform-Specific Instructions
-
-### Windows
-
-1. **Line Endings Configuration**
-   ```bash
-   git config core.autocrlf true
-   ```
-
-2. **File Permissions**
-   - Husky hooks should work automatically
-   - If issues occur, run Git Bash as administrator
-
-### macOS / Linux
-
-1. **Line Endings Configuration**
-   ```bash
-   git config core.autocrlf input
-   ```
-
-2. **File Permissions**
-   - Hooks are automatically made executable
-   - No additional setup required
-
-### All Platforms
-
-Configure Git to handle line endings consistently:
-```bash
-git config core.eol lf
-```
-
-## 🔍 Troubleshooting
-
-### "My hook failed, but I don't see any errors"
-
-Run the validation manually to see detailed output:
-```bash
-pnpm validate
-```
-
-### "How do I bypass a hook temporarily?"
-
-Use `--no-verify` flag:
-```bash
-git commit --no-verify -m "WIP: temporary commit"
-```
-
-### "My editor is reformatting files differently than Biome"
-
-1. Install the Biome extension for VS Code
-2. Ensure VS Code settings use Biome as default formatter
-3. Check `.vscode/settings.json` is applied
-
-### "Lint-staged behavior with unstaged changes"
-
-Lint-staged stashes unstaged changes before running. This means:
-- Only staged changes are validated
-- Unstaged changes are temporarily hidden
-- After completion, unstaged changes are restored
-
-If type checking fails due to unstaged changes, you'll need to either:
-- Stage all related changes
-- Fix type errors in unstaged files
-
-### "When to use --no-verify flag appropriately"
-
-Use `--no-verify` only when:
-- Making WIP commits on a feature branch
-- Committing incomplete work before switching contexts
-- Emergency hotfixes where full validation would delay critical fixes
-
-Never use for:
-- Commits to main branch
-- Final commits before PR
-- "Fixing" validation errors by skipping them
-
-## ⚡ Quick Validation Mode
-
-For rapid iteration during development:
-
-```bash
-pnpm quick-validate
-```
-
-This runs only:
-- Linting
-- Formatting
-
-Use this when:
-- Making frequent small changes
-- Iterating on code style
-- You've already run full validation recently
-
-Always run full validation before committing:
-```bash
-pnpm validate
-```
-
-## 📊 Performance Considerations
-
-### Large Commits
-
-If committing more than 50 files, the pre-commit hook will warn you. Consider:
-- Breaking into smaller, logical commits
-- Using `pnpm quick-validate` for initial checks
-- Running full validation separately
-
-### Expected Execution Times
-
-- Quick validation: ~5 seconds
-- Full validation: ~30 seconds
-- Pre-commit hook: ~20 seconds (depends on staged files)
-
-## 🤝 Getting Help
-
-- Check existing issues on GitHub
-- Read the [CLAUDE.md](./CLAUDE.md) for detailed development guidelines
-- Ask questions in pull requests or issues
-
-Remember: Quality over speed. Take time to write tests, refactor when needed, and maintain code standards.
+- 2-space indentation
+- Single quotes for strings
+- No semicolons
+- Functional programming patterns preferred
+- All code must pass TypeScript strict mode
