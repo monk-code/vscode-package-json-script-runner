@@ -103,9 +103,9 @@
     "package": "vsce package --no-dependencies",
     "prepare-release": "node scripts/prepare-release.mjs",
     "prepublish": "pnpm validate",
-    "publish:patch": "vsce publish patch",
-    "publish:minor": "vsce publish minor",
-    "publish:major": "vsce publish major"
+    "publish:patch": "vsce publish patch --no-dependencies",
+    "publish:minor": "vsce publish minor --no-dependencies",
+    "publish:major": "vsce publish major --no-dependencies"
   },
   "lint-staged": {
     "*.{ts,mts,mjs}": [
