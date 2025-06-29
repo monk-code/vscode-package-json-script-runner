@@ -1,5 +1,5 @@
 import { promises as fs, type Dirent } from 'node:fs'
-import { join } from 'node:path'
+import { join, dirname } from 'node:path'
 import type { PackageInfo } from '#/types/package-info.js'
 
 const EXCLUDED_DIRECTORIES = new Set(['node_modules'])
@@ -13,7 +13,7 @@ const parsePackageJson = async (
   try {
     const content = await fs.readFile(filePath, 'utf8')
     const packageData = JSON.parse(content)
-    const packageDir = filePath.replace('/package.json', '')
+    const packageDir = dirname(filePath)
 
     return {
       path: packageDir,
