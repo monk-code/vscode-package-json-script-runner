@@ -2,7 +2,7 @@
   "name": "vscode-package-json-script-runner",
   "displayName": "Package.json Script Runner",
   "description": "Run package.json scripts from any package in your monorepo with fuzzy search",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "publisher": "monkcode",
   "icon": "images/logo.png",
   "repository": {
