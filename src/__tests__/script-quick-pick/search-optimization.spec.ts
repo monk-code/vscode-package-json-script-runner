@@ -11,6 +11,7 @@ describe('Search Optimization', () => {
     })
 
     afterEach(() => {
+      vi.useRealTimers()
       vi.restoreAllMocks()
     })
 
