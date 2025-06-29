@@ -3,19 +3,21 @@
   "displayName": "Package.json Script Runner",
   "description": "Run package.json scripts from any package in your monorepo with fuzzy search",
   "version": "1.0.0",
-  "publisher": "bright-energy",
+  "publisher": "monkcode",
+  "icon": "images/logo.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bright-energy/vscode-package-json-script-runner.git"
+    "url": "https://github.com/monk-code/vscode-package-json-script-runner.git"
   },
   "bugs": {
-    "url": "https://github.com/bright-energy/vscode-package-json-script-runner/issues"
+    "url": "https://github.com/monk-code/vscode-package-json-script-runner/issues"
   },
-  "homepage": "https://github.com/bright-energy/vscode-package-json-script-runner#readme",
+  "homepage": "https://github.com/monk-code/vscode-package-json-script-runner#readme",
   "engines": {
-    "vscode": "^1.95.0"
+    "vscode": "^1.85.0"
   },
   "categories": [
+    "Task Running",
     "Other"
   ],
   "activationEvents": [
@@ -33,8 +35,8 @@
     "keybindings": [
       {
         "command": "vscode-package-json-script-runner.runScript",
-        "key": "ctrl+shift+r",
-        "mac": "cmd+shift+r"
+        "key": "ctrl+alt+r",
+        "mac": "cmd+alt+r"
       }
     ],
     "configuration": {
@@ -107,7 +109,7 @@
     "productivity",
     "development"
   ],
-  "author": "Bright Energy Development Team",
+  "author": "monkcode",
   "license": "MIT",
   "packageManager": "pnpm@10.4.1",
   "dependencies": {
