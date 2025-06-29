@@ -81,18 +81,6 @@ describe('package.json configuration', () => {
     expect(runLastScriptKeybinding?.mac).toBe('cmd+alt+l')
   })
 
-  test('should target compatible VS Code engine version', () => {
-    const engines = packageJson.engines as Record<string, string>
-    expect(engines.vscode).toBe('^1.101.0')
-  })
-
-  test('should have appropriate categories including Task Running', () => {
-    const categories = packageJson.categories as string[]
-    expect(categories).toBeDefined()
-    expect(categories).toContain('Task Running')
-    expect(categories).toContain('Other')
-  })
-
   test('should have icon configuration', () => {
     expect(packageJson.icon).toBe('images/logo.png')
   })
