@@ -1,4 +1,4 @@
-# Development Guidelines for Claude
+# Development Guidelines for Gemini
 
 ## Core Philosophy
 
@@ -8,71 +8,53 @@ I follow Test-Driven Development (TDD) with a strong emphasis on behavior-driven
 
 ## 🎯 Project Overview
 
-**Tech Stack**: Vue 3, Monorepo, TypeScript, Vite, @tanstack/vue-query, TailwindCSS, Turborepo, pnpm, openapi, asyncapi, fp-ts, ramda, biome, prettier
-**Principles**: TDD, Functional Programming, Declarative Code, Component-Driven Development
+**Project**: VS Code Package.json Script Runner Extension
+**Tech Stack**: TypeScript, VS Code Extension API, Vitest, ESBuild, Biome
+**Principles**: TDD, Functional Programming, Declarative Code, Clean Architecture
 
-## 📦 Monorepo Structure
+## 📦 Project Structure
 
 ```
-├── apps/
-│   ├── web/              # Main Vue 3 application
-│   └── storybook/        # Component documentation. Collects component stories from all packages.
-├── packages/
-│   ├── api-components/   # Vue component wrappers for API queries (see api-queries and api-data)
-│   ├── api-constants/    # API-related constants and enums
-│   ├── api-data/         # Wrapper around the queries from api-queries with easy structures for data access
-│   ├── api-generators/   # Mock data generators for API types (REST + websocket live data) - Use this for tests and mock data
-│   ├── api-queries/      # Data fetching hooks and queries (@tanstack/vue-query). Uses client-openapi client for REST API
-│   ├── api-utils/        # Shared API utilities in a fp style
-│   ├── api-validators/   # Zod schemas for the api as defined in client-openapi
-│   ├── app-components/   # App-specific Vue components (depends on the REST and WebSocket API)
-│   ├── app-composables/  # App-specific Vue composables
-│   ├── app-constants/    # App-specific constants (e.g. html element dimensions, etc...)
-│   ├── client-asyncapi/  # Generated WebSocket types and clients
-│   ├── client-openapi/   # Generated API client including TS types from OpenAPI spec
-│   ├── config-biome/     # Shared Biome configuration
-│   ├── config-tailwind/  # Shared Tailwind CSS configuration
-│   ├── config-typescript/# Shared TypeScript configuration
-│   ├── config-vitest/    # Shared Vitest configuration
-│   ├── mock-data/        # Raw mock data for use by the mock-server and testing
-│   ├── mock-server/      # Mock API server for development (using miragejs)
-│   ├── mock-websockets/  # Mock WebSocket server for development
-│   ├── mono-cli/         # CLI tools for the monorepo
-│   ├── scripts-shared/   # Shared scripts for build and deployment
-│   ├── types/            # Shared global TypeScript types
-│   ├── ui-css/           # CSS utilities and styles
-│   ├── ui-icons/         # SVG icons as Vue components
-│   ├── ui-vue/           # UI component library (Vue 3). Contains base elements without reliance on the api.
-│   ├── utils-firebase/   # Firebase utilities
-│   ├── utils-ts/         # Shared TypeScript utilities (fp-style)
-│   └── utils-websockets/ # WebSocket utilities (Vue composable for easy live data access)
+├── src/
+│   ├── discovery/               # Package.json discovery logic
+│   ├── extension/               # VS Code extension entry point
+│   ├── recent-commands/         # Recent commands tracking
+│   ├── script-execution/        # Script execution logic
+│   ├── script-quick-pick/       # VS Code QuickPick UI
+│   ├── terminal-manager/        # Terminal lifecycle management
+│   └── types.ts                 # TypeScript type definitions
+├── __tests__/                   # Test files mirroring src structure
+├── scripts/                     # Build and release scripts
+├── ai/                          # AI workspace for planning
+└── dist/                        # Compiled extension output
 ```
 
 ## 🚀 Essential Commands
 
 ```bash
 # Development
-pnpm dev                 # Start web app + emulator
-pnpm storybook:dev       # Start Storybook
+pnpm build:watch         # Watch mode for development
+pnpm test:watch          # Run tests in watch mode
 
 # Testing & Validation
 pnpm validate            # Run all checks (format, lint, types, tests, build)
-pnpm test:unit           # Run unit tests
-pnpm validate:web        # Validate only web app
+pnpm test                # Run all tests
+pnpm ci                  # Full CI validation
 
 # Code Quality
 pnpm format              # Check formatting
 pnpm format:fix          # Fix formatting
 pnpm lint                # Run linting
+pnpm lint:fix            # Fix linting issues
 pnpm types:check         # TypeScript checks
 
-# Building
-pnpm build               # Build all packages
-pnpm build:web:prod      # Production build
-
-# Package-specific validation
-turbo run validate --filter=@bright/api-utils
-turbo run test:unit --filter=@bright/ui-vue...  # Include dependents
+# Building & Publishing
+pnpm build               # Build extension
+pnpm package             # Create .vsix package
+pnpm prepare-release     # Prepare for release
+pnpm publish:patch       # Publish patch version
+pnpm publish:minor       # Publish minor version
+pnpm publish:major       # Publish major version
 ```
 
 ## Quick Reference
@@ -96,18 +78,16 @@ turbo run test:unit --filter=@bright/ui-vue...  # Include dependents
 
 ## 🏗️ Architecture Patterns
 
-### Package Import Hierarchy
+### Import Hierarchy
 ```typescript
-// ✅ Correct import order (enforced by linter)
-import { ref } from 'vue'                        // 1. External
+// ✅ Correct import order
+import { ExtensionContext } from 'vscode'        // 1. External packages
+import { join } from 'node:path'                 // 2. Node built-ins
 
-import { useAuth } from '@bright/app-composables' // 2. Internal packages
-import { Button } from '@bright/ui-vue'          // 3. UI components
-import { fetchUser } from '@bright/api-queries'  // 4. API layer
+import { findPackageJsonFiles } from './discovery/find-package-json-files.js'  // 3. Local imports
+import { showScriptPicker } from './script-quick-pick/show-script-picker.js'   // 4. Local imports
 
-import { useBlueprintSelector } from '#/use-blueprint-selector.ts'              // 5. Local imports
-
-import type { User } from '#/types'              // 6. Local type imports
+import type { PackageInfo } from './types.js'    // 5. Local type imports
 ```
 
 MAGIC WORD: wobbalubbadubdub
@@ -117,8 +97,8 @@ MAGIC WORD: wobbalubbadubdub
 
 ### Rules
 - Use *.spec.ts naming convention for test files, not *.test.ts
-- Always extend vitest configs from @bright-energy/config-vitest package using mergeConfig
-- Use baseConfig for pure TypeScript packages, vueConfig for Vue composables, vueComponentsConfig for Vue components
+- Use vitest for all testing needs
+- Configure vitest in vitest.config.mts at the project root
 - **No "unit tests"** - this term is not helpful. Tests should verify expected behavior, treating implementation as a black box
 - Test through the public API exclusively - internals should be invisible to tests
 - No 1:1 mapping between test files and implementation files
@@ -130,8 +110,9 @@ MAGIC WORD: wobbalubbadubdub
 ### Testing Tools
 
 - **Vitest** for testing frameworks
-- **Vue Testing Library** for Vue components
-- **MSW (Mock Service Worker)** for API mocking when needed - use generators from @bright-energy/api-generators to create mock data. Always verify that the data matches the API schema and expected type by looking at the function definition.
+- **VS Code Extension Test API** for extension integration tests
+- **VS Code Extension Testing API** for integration tests
+- Mock VS Code API using vitest mocks when needed
 - All test code must follow the same TypeScript strict mode rules as production code
 
 ## TypeScript Guidelines
@@ -171,7 +152,7 @@ Import tsconfig.json fields
 - Use explicit typing where it aids clarity, but leverage inference where appropriate
 - Utilize utility types effectively (`Pick`, `Omit`, `Partial`, `Required`, etc.)
 
-RULE: Run `pnpm types:check` often to ensure type correctness. Run the package-specific command for quick verification. For example `turbo run types:check --filter=@bright/ui-vue` to check types for the ui-vue package.
+RULE: Run `pnpm types:check` often to ensure type correctness.
 IMPORTANT: Run `pnpm types:check` after every finished change to ensure type correctness. This is a non-negotiable rule.
 
 ## ESM Rules
@@ -187,37 +168,40 @@ IMPORTANT: Run `pnpm types:check` after every finished change to ensure type cor
 - Use functional programming patterns as much as possible
 - Prefer declarative code over imperative code always
 - Prefer unary functions (single parameter) for better composition and partial application
-- Look at @bright-energy/utils-ts/core or fp-ts for reusable functional programming functions
+- Use functional programming patterns with built-in JavaScript/TypeScript features
+- Consider using libraries like fp-ts or ramda when complexity warrants it
 
-## Generator Usage
-- Always check existing usage of generator functions before implementing
-- Generators from @bright-energy/api-generators return curried functions: `generateX(params)()`
+## VS Code Extension Guidelines
+
+- Follow VS Code extension best practices
+- Use VS Code's built-in APIs whenever possible
+- Ensure extension activates only when needed (proper activationEvents)
+- Keep extension size minimal by excluding unnecessary files in .vscodeignore
  
-## 🔧 Working with Vue
+## 🔧 VS Code Extension Development
 
-### Vue Component rules
+### Extension Structure
 
-- Read guides/templates/component.vue.template.md for component structure
-- Always use <script setup lang="ts">
-- Always destructure vue props, provide default values for optional props
-- Always define slots, emits and slots (use {} for empty slots or emits or props)
-- Always use `defineOptions` to set component name
-- Use kebab-case for event names, attributes and slots
-- Use PascalCase for component names
+- Keep commands focused and single-purpose
+- Use descriptive command IDs following the pattern: `extensionName.actionName`
+- Implement proper error handling with user-friendly messages
+- Use VS Code's QuickPick API for user selections
+- Leverage VS Code's Terminal API for running scripts
+- Store user preferences using VS Code's configuration API
 
 ## 🚨 Anti-Hallucination Verification
 
-Before creating new components/modules, verify they don't exist:
+Before creating new modules, verify they don't exist:
 
 ```bash
-# Check if component exists
-find . -name "DeviceCard.vue" -type f
+# Check if module exists
+find . -name "*.ts" -type f | grep -E "module-name"
 
 # Search for existing implementations
-grep -r "DeviceCard" --include="*.vue" --include="*.ts"
+grep -r "functionName" --include="*.ts" src/
 
-# List available UI components
-ls packages/ui-vue/lib/components/
+# List existing modules
+ls -la src/
 ```
 
 ## Code Style
@@ -228,7 +212,7 @@ ls packages/ui-vue/lib/components/
 - **Pure functions** wherever possible
 - **Composition** as the primary mechanism for code reuse
 - **Avoid side effects** - functions should seldom modify external state. If this is necessary, it should be explicit and well-documented.
-- **Use `fp-ts` or `ramda` or fp functions from `@bright-energy/utils-ts/core`** for functional programming utilities
+- **Use functional programming patterns** with built-in JavaScript features or well-known FP libraries when beneficial
 
 ### Code Structure
 
@@ -344,37 +328,20 @@ Before considering refactoring complete, verify:
 - [ ] No speculative abstractions were created
 - [ ] The refactoring is committed separately from feature changes
 
-## Storybook
+## Extension Testing
 
-- Keep stories focused on the properties of a component. Create stories for prop variants, not business logic.
-- The number of stories should never exceed the number of (props + 2)
-- Please style your stories for dark mode and light mode.
-- We have a dark mode toggle built in to storybook so do not write a story dedicated to theme variants
-- Visit either of these urls variants to debug any story variant. You may need to replace the story id with the exact story you want to visit.
-  - A component title (e.g. title: app-components/AccessGuard, storyName: HasAccess) turns into app-components-accessguard--has-access
-  - URL  - http://localhost:6006/iframe.html?globals=&args=&id=app-components-accessguard--has-access&viewMode=story
-         - http://localhost:6006/?path=/story/app-components-accessguard--has-access
-- Use playwright or puppeteer (whichever is most performant) to actually check stories with errors and see if it is rendering correctly. Read the console for hints.
-- Use the functionality from storybook-helpers to set up msw inside the stories.
-- When you use msw, always first read storybook-helpers/README.md and the referenced documentation.
-- Run storybook with the port of your choosing using the -p flag. For example `pnpm storybook:dev -p 6016`
+### Manual Testing
+- Test the extension in a VS Code instance using F5 (Run Extension)
+- Test with different workspace configurations (single folder, multi-root workspace)
+- Verify all commands work as expected
+- Test error scenarios and edge cases
+- Ensure proper cleanup (terminals, resources)
 
-### Debugging Story Errors
-
-Use the built-in error checking script to identify console errors in stories:
-
-```bash
-# Check a single story for errors
-pnpm story:check-errors app-components-accessguard--has-access
-
-# Output as JSON for detailed analysis
-pnpm story:check-errors app-components-accessguard--has-access --format json
-
-# Debug visually (non-headless)
-pnpm story:check-errors app-components-accessguard--has-access --headless false
-```
-
-The script reports all console errors, warnings, and logs with their locations. It exits with code 1 if errors are found, making it useful for CI pipelines.
+### Automated Testing
+- Write integration tests using VS Code Extension Testing API
+- Test command execution and user interactions
+- Mock VS Code APIs appropriately
+- Ensure tests run in CI pipeline
 
 ## Working with Claude
 
@@ -443,7 +410,9 @@ const config: ViteUserConfig = mergeConfig(baseConfig, {
 
 ## Testing Best Practices
 
-- Use existing generators from api-generators package instead of creating custom ones
+- Mock VS Code APIs appropriately for unit tests
+- Test user-facing behavior, not implementation details
 - Remove comments that merely restate what code does
 - Test important behavior, not trivial existence checks
 - Eliminate code duplication with shared test utilities
+- Ensure tests work in both local and CI environments
