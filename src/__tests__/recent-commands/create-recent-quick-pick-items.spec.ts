@@ -11,7 +11,7 @@ const QuickPickItemKind = {
 
 describe('createRecentQuickPickItems', () => {
   it('should return empty array when no recent commands', () => {
-    const result = createRecentQuickPickItems([])
+    const result = createRecentQuickPickItems([], '/workspace')
     expect(result).toEqual([])
   })
 
@@ -26,7 +26,7 @@ describe('createRecentQuickPickItems', () => {
       },
     ]
 
-    const result = createRecentQuickPickItems(commands)
+    const result = createRecentQuickPickItems(commands, '/workspace')
 
     expect(result).toHaveLength(2) // separator + item
     expect(result[0]).toMatchObject({
@@ -40,7 +40,7 @@ describe('createRecentQuickPickItems', () => {
       scriptName: 'test',
       scriptCommand: 'vitest',
       packageName: 'core',
-      packagePath: './packages/core',
+      packagePath: '/workspace/packages/core',
     })
   })
 
@@ -55,7 +55,7 @@ describe('createRecentQuickPickItems', () => {
       },
     ]
 
-    const result = createRecentQuickPickItems(commands)
+    const result = createRecentQuickPickItems(commands, '/workspace')
 
     expect(result).toHaveLength(2)
     expect(result[0]).toMatchObject({
@@ -87,7 +87,7 @@ describe('createRecentQuickPickItems', () => {
       },
     ]
 
-    const result = createRecentQuickPickItems(commands)
+    const result = createRecentQuickPickItems(commands, '/workspace')
 
     expect(result).toHaveLength(3) // 1 separator + 2 items
     expect(result[0]).toMatchObject({
@@ -114,7 +114,7 @@ describe('createRecentQuickPickItems', () => {
       },
     ]
 
-    const result = createRecentQuickPickItems(commands)
+    const result = createRecentQuickPickItems(commands, '/workspace')
 
     expect(result).toHaveLength(2) // separator + item
     expect(result[1].label).toBe('test')
@@ -123,7 +123,7 @@ describe('createRecentQuickPickItems', () => {
   })
 
   it('should not include separator when no recent commands', () => {
-    const result = createRecentQuickPickItems([])
+    const result = createRecentQuickPickItems([], '/workspace')
 
     expect(result).toHaveLength(0)
     expect(
@@ -151,12 +151,66 @@ describe('createRecentQuickPickItems', () => {
       },
     ]
 
-    const result = createRecentQuickPickItems(commands)
+    const result = createRecentQuickPickItems(commands, '/workspace')
 
     expect(result).toHaveLength(3) // separator + 2 items
     const item1 = result[1] as { scriptName: string }
     const item2 = result[2] as { scriptName: string }
     expect(item1.scriptName).toBe('newer')
     expect(item2.scriptName).toBe('older')
+  })
+
+  it('should convert relative packagePath to absolute path', () => {
+    const commands: RecentCommand[] = [
+      {
+        scriptName: 'test',
+        packageName: 'core',
+        packagePath: 'packages/core',
+        scriptCommand: 'vitest',
+        timestamp: Date.now(),
+      },
+    ]
+
+    const result = createRecentQuickPickItems(commands, '/workspace')
+
+    expect(result).toHaveLength(2) // separator + item
+    const item = result[1] as { packagePath: string }
+    expect(item.packagePath).toBe('/workspace/packages/core')
+  })
+
+  it('should handle nested relative paths correctly', () => {
+    const commands: RecentCommand[] = [
+      {
+        scriptName: 'build',
+        packageName: '@company/deep-nested',
+        packagePath: 'apps/frontend/packages/deep-nested',
+        scriptCommand: 'tsup',
+        timestamp: Date.now(),
+      },
+    ]
+
+    const result = createRecentQuickPickItems(commands, '/root/project')
+
+    const item = result[1] as { packagePath: string }
+    expect(item.packagePath).toBe(
+      '/root/project/apps/frontend/packages/deep-nested'
+    )
+  })
+
+  it('should handle root level packages correctly', () => {
+    const commands: RecentCommand[] = [
+      {
+        scriptName: 'start',
+        packageName: 'root-app',
+        packagePath: '.',
+        scriptCommand: 'node index.js',
+        timestamp: Date.now(),
+      },
+    ]
+
+    const result = createRecentQuickPickItems(commands, '/workspace')
+
+    const item = result[1] as { packagePath: string }
+    expect(item.packagePath).toBe('/workspace')
   })
 })

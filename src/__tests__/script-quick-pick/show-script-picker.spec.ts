@@ -1201,7 +1201,8 @@ describe('showScriptPicker', () => {
 
       // Verify createRecentQuickPickItems was called with only 5 commands
       expect(vi.mocked(createRecentQuickPickItems)).toHaveBeenCalledWith(
-        mockRecentCommands.slice(0, 5)
+        mockRecentCommands.slice(0, 5),
+        '/workspace'
       )
 
       testHelpers.triggerHide()

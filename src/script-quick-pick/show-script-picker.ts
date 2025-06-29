@@ -169,7 +169,10 @@ export const showScriptPicker = async (
         .then((recentCommands) => {
           // Limit to 5 most recent commands
           const limitedRecentCommands = recentCommands.slice(0, 5)
-          recentItems = createRecentQuickPickItems(limitedRecentCommands)
+          recentItems = createRecentQuickPickItems(
+            limitedRecentCommands,
+            workspaceRoot
+          )
           updateQuickPickItems()
         })
         .catch(() => {

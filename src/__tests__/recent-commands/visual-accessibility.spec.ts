@@ -16,7 +16,7 @@ describe('Recent Commands Visual and Accessibility', () => {
         },
       ]
 
-      const result = createRecentQuickPickItems(commands)
+      const result = createRecentQuickPickItems(commands, '/workspace')
 
       expect(result).toHaveLength(2) // separator + item
       expect(result[1].label).toBe('test')
@@ -36,7 +36,7 @@ describe('Recent Commands Visual and Accessibility', () => {
         },
       ]
 
-      const result = createRecentQuickPickItems(commands)
+      const result = createRecentQuickPickItems(commands, '/workspace')
 
       expect(result).toHaveLength(2) // separator + item
       expect(result[1].label).toBe('build')
@@ -66,7 +66,7 @@ describe('Recent Commands Visual and Accessibility', () => {
           },
         ]
 
-        const result = createRecentQuickPickItems(commands)
+        const result = createRecentQuickPickItems(commands, '/workspace')
         expect(result).toHaveLength(2) // separator + item
         expect(result[1].label).toBe('test')
         expect(result[1].description).toBe(expected)
@@ -85,7 +85,7 @@ describe('Recent Commands Visual and Accessibility', () => {
         },
       ]
 
-      const result = createRecentQuickPickItems(commands)
+      const result = createRecentQuickPickItems(commands, '/workspace')
 
       expect(result).toHaveLength(2) // separator + item
       expect(result[1].label).toBe('dev')
@@ -106,7 +106,7 @@ describe('Recent Commands Visual and Accessibility', () => {
         },
       ]
 
-      const result = createRecentQuickPickItems(commands)
+      const result = createRecentQuickPickItems(commands, '/workspace')
 
       // VS Code generates aria labels from label, description, and detail
       expect(result).toHaveLength(2) // separator + item
@@ -126,7 +126,7 @@ describe('Recent Commands Visual and Accessibility', () => {
         },
       ]
 
-      const result = createRecentQuickPickItems(commands)
+      const result = createRecentQuickPickItems(commands, '/workspace')
       const separator = result[0]
 
       expect(separator.kind).toBe(-1) // QuickPickItemKind.Separator
@@ -134,7 +134,7 @@ describe('Recent Commands Visual and Accessibility', () => {
     })
 
     it('should handle empty recent commands with appropriate message', () => {
-      const result = createRecentQuickPickItems([])
+      const result = createRecentQuickPickItems([], '/workspace')
 
       expect(result).toHaveLength(0)
     })
@@ -173,7 +173,7 @@ describe('Recent Commands Visual and Accessibility', () => {
         },
       ]
 
-      const result = createRecentQuickPickItems(commands)
+      const result = createRecentQuickPickItems(commands, '/workspace')
 
       expect(result).toHaveLength(5) // separator + 4 items
       expect(result[1].label).toBe('test')
@@ -193,7 +193,7 @@ describe('Recent Commands Visual and Accessibility', () => {
         },
       ]
 
-      const result = createRecentQuickPickItems(commands)
+      const result = createRecentQuickPickItems(commands, '/workspace')
 
       expect(result).toHaveLength(2) // separator + item
       expect(result[1].label).toBe('custom:task')

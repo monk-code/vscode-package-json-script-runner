@@ -1,4 +1,5 @@
 import type { QuickPickItem } from 'vscode'
+import * as path from 'node:path'
 
 import type { RecentCommand } from '#/types/recent-command.js'
 import type { ScriptQuickPickItem } from '#/types/script-quick-pick-item.js'
@@ -8,22 +9,27 @@ import type { ScriptQuickPickItem } from '#/types/script-quick-pick-item.js'
 const SEPARATOR_KIND = -1
 
 export const createRecentQuickPickItems = (
-  commands: RecentCommand[]
+  commands: RecentCommand[],
+  workspaceRoot: string
 ): Array<ScriptQuickPickItem | QuickPickItem> => {
   if (commands.length === 0) {
     return []
   }
 
   const separator = createSeparator()
-  const recentItems = commands.map(commandToQuickPickItem)
+  const recentItems = commands.map((cmd) =>
+    commandToQuickPickItem(cmd, workspaceRoot)
+  )
 
   return [separator, ...recentItems]
 }
 
 const commandToQuickPickItem = (
-  command: RecentCommand
+  command: RecentCommand,
+  workspaceRoot: string
 ): ScriptQuickPickItem => {
   const timeAgo = formatTimeAgo(command.timestamp)
+  const absolutePackagePath = path.join(workspaceRoot, command.packagePath)
 
   return {
     label: command.scriptName,
@@ -32,7 +38,7 @@ const commandToQuickPickItem = (
     scriptName: command.scriptName,
     scriptCommand: command.scriptCommand,
     packageName: command.packageName,
-    packagePath: command.packagePath,
+    packagePath: absolutePackagePath,
   }
 }
 
