@@ -30,6 +30,11 @@
         "command": "vscode-package-json-script-runner.runScript",
         "title": "Run Package Script",
         "category": "Package Scripts"
+      },
+      {
+        "command": "vscode-package-json-script-runner.runLastScript",
+        "title": "Run Last Package Script",
+        "category": "Package Scripts"
       }
     ],
     "keybindings": [
@@ -37,6 +42,11 @@
         "command": "vscode-package-json-script-runner.runScript",
         "key": "ctrl+alt+r",
         "mac": "cmd+alt+r"
+      },
+      {
+        "command": "vscode-package-json-script-runner.runLastScript",
+        "key": "ctrl+alt+l",
+        "mac": "cmd+alt+l"
       }
     ],
     "configuration": {

@@ -42,11 +42,13 @@ vi.mock('#/utils/error-handling.js', () => ({
   formatUserError: vi.fn(),
 }))
 
+const mockRecentCommandsManager = {
+  getValidatedRecentCommands: vi.fn().mockResolvedValue([]),
+  addRecentCommand: vi.fn().mockResolvedValue(undefined),
+}
+
 vi.mock('#/recent-commands/recent-commands-manager.js', () => ({
-  RecentCommandsManager: vi.fn(() => ({
-    getValidatedRecentCommands: vi.fn().mockResolvedValue([]),
-    addRecentCommand: vi.fn().mockResolvedValue(undefined),
-  })),
+  RecentCommandsManager: vi.fn(() => mockRecentCommandsManager),
 }))
 
 vi.mock('#/script-execution/execute-script.js', () => ({
@@ -64,6 +66,8 @@ describe('Extension', () => {
     vi.clearAllMocks()
     mockContext = createMockExtensionContext()
     mockWorkspace.workspaceFolders = undefined
+    mockRecentCommandsManager.getValidatedRecentCommands.mockResolvedValue([])
+    mockRecentCommandsManager.addRecentCommand.mockResolvedValue(undefined)
   })
 
   const getCommandHandler = (): (() => Promise<void>) => {
@@ -110,6 +114,31 @@ describe('Extension', () => {
       activate(mockContext)
 
       expect(RecentCommandsManager).toHaveBeenCalledWith(mockContext)
+    })
+
+    test('registers runLastScript command with correct ID', async () => {
+      const { activate } = await import('#/extension/extension.js')
+
+      activate(mockContext)
+
+      expect(mockCommands.registerCommand).toHaveBeenCalledWith(
+        'vscode-package-json-script-runner.runLastScript',
+        expect.any(Function)
+      )
+    })
+
+    test('pushes runLastScript disposable to context subscriptions', async () => {
+      const { activate } = await import('#/extension/extension.js')
+      const mockDisposable1 = createMockDisposable()
+      const mockDisposable2 = createMockDisposable()
+      mockCommands.registerCommand
+        .mockReturnValueOnce(mockDisposable1)
+        .mockReturnValueOnce(mockDisposable2)
+
+      activate(mockContext)
+
+      expect(mockContext.subscriptions).toContain(mockDisposable1)
+      expect(mockContext.subscriptions).toContain(mockDisposable2)
     })
   })
 
@@ -488,6 +517,120 @@ describe('Extension', () => {
       expect(mockWindow.showErrorMessage).toHaveBeenCalledWith(
         'Formatted error: executing script'
       )
+    })
+  })
+
+  describe('runLastScript command', () => {
+    const getRunLastScriptHandler = (): (() => Promise<void>) => {
+      const registerCalls = mockCommands.registerCommand.mock.calls
+      const runLastScriptCall = registerCalls.find(
+        (call) => call[0] === 'vscode-package-json-script-runner.runLastScript'
+      )
+      expect(runLastScriptCall).toBeDefined()
+      if (!runLastScriptCall) {
+        throw new Error('runLastScript command not found')
+      }
+      return runLastScriptCall[1]
+    }
+
+    test('executes most recent valid command without showing picker', async () => {
+      const { activate } = await import('#/extension/extension.js')
+      const { executeScript } = await import(
+        '#/script-execution/execute-script.js'
+      )
+      const { showScriptPicker } = await import(
+        '#/script-quick-pick/show-script-picker.js'
+      )
+
+      const recentCommand = {
+        scriptName: 'build',
+        packageName: 'recent-package',
+        packagePath: 'packages/recent',
+        scriptCommand: 'npm run build',
+        timestamp: Date.now(),
+      }
+
+      mockWorkspace.workspaceFolders = [createMockWorkspaceFolder('/test/path')]
+
+      // Mock recent commands manager to return our recent command
+      mockRecentCommandsManager.getValidatedRecentCommands.mockResolvedValue([
+        recentCommand,
+      ])
+
+      vi.mocked(executeScript).mockResolvedValue()
+
+      activate(mockContext)
+      const handler = getRunLastScriptHandler()
+      await handler()
+
+      // Should execute the script directly without showing picker
+      expect(executeScript).toHaveBeenCalledWith(
+        {
+          packageName: recentCommand.packageName,
+          packagePath: '/test/path/packages/recent',
+          scriptName: recentCommand.scriptName,
+          scriptCommand: recentCommand.scriptCommand,
+        },
+        '/test/path',
+        expect.objectContaining({
+          getValidatedRecentCommands: expect.any(Function),
+          addRecentCommand: expect.any(Function),
+        }),
+        '/test/path'
+      )
+      expect(showScriptPicker).not.toHaveBeenCalled()
+    })
+
+    test('shows information message when no recent commands exist', async () => {
+      const { activate } = await import('#/extension/extension.js')
+      const { executeScript } = await import(
+        '#/script-execution/execute-script.js'
+      )
+
+      mockWorkspace.workspaceFolders = [createMockWorkspaceFolder('/test/path')]
+
+      // Mock recent commands manager to return empty array
+      mockRecentCommandsManager.getValidatedRecentCommands.mockResolvedValue([])
+
+      activate(mockContext)
+      const handler = getRunLastScriptHandler()
+      await handler()
+
+      expect(mockWindow.showInformationMessage).toHaveBeenCalledWith(
+        'No recent commands found'
+      )
+      expect(executeScript).not.toHaveBeenCalled()
+    })
+
+    test('shows visual feedback when running last command', async () => {
+      const { activate } = await import('#/extension/extension.js')
+      const { executeScript } = await import(
+        '#/script-execution/execute-script.js'
+      )
+
+      const recentCommand = {
+        scriptName: 'test',
+        packageName: 'my-app',
+        packagePath: 'apps/my-app',
+        scriptCommand: 'npm test',
+        timestamp: Date.now(),
+      }
+
+      mockWorkspace.workspaceFolders = [createMockWorkspaceFolder('/test/path')]
+      mockRecentCommandsManager.getValidatedRecentCommands.mockResolvedValue([
+        recentCommand,
+      ])
+      vi.mocked(executeScript).mockResolvedValue()
+
+      activate(mockContext)
+      const handler = getRunLastScriptHandler()
+      await handler()
+
+      // Should show information message before executing
+      expect(mockWindow.showInformationMessage).toHaveBeenCalledWith(
+        'Running: test (my-app)'
+      )
+      expect(executeScript).toHaveBeenCalled()
     })
   })
 

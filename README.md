@@ -8,16 +8,18 @@ A powerful Visual Studio Code extension that simplifies running npm/yarn/pnpm sc
 - **📦 Monorepo Support**: Automatically discovers all package.json files in your workspace, including nested packages.
 - **🎯 Smart Package Manager Detection**: Automatically uses the correct package manager (npm, yarn, or pnpm) based on lock files.
 - **⚡ Fast Navigation**: Use keyboard shortcut `Ctrl+Alt+R` (Windows/Linux) or `Cmd+Alt+R` (macOS).
+- **🔄 Recent Commands**: Press `Ctrl+Alt+L` (Windows/Linux) or `Cmd+Alt+L` (macOS) to instantly run your last used script.
 - **🖥️ Terminal Integration**: Creates properly named terminals with correct working directories.
 
 ## 🎮 Usage
 
 ### Running Scripts
 
-1. **Using Keyboard Shortcut**: Press `Ctrl+Alt+R` (Windows/Linux) or `Cmd+Alt+R` (macOS).
-2. **Using Command Palette**:
+1. **Open Script Picker**: Press `Ctrl+Alt+R` (Windows/Linux) or `Cmd+Alt+R` (macOS) to search and run any script.
+2. **Run Last Script**: Press `Ctrl+Alt+L` (Windows/Linux) or `Cmd+Alt+L` (macOS) to instantly run your most recent script.
+3. **Using Command Palette**:
    - Press `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (macOS).
-   - Type "Run Package Script".
+   - Type "Run Package Script" or "Run Last Package Script".
    - Press Enter.
 
 ### The Script Picker
@@ -67,6 +69,9 @@ Interested in contributing? We'd love your help! Please see our [**Contributing 
 ### Wrong package manager used
 - The extension detects the package manager based on 1) the "packageManager" field in `package.json` and 2) the lock file (`package-lock.json`, `yarn.lock`, or `pnpm-lock.yaml`).
 - Make sure your lock files are committed to your repository or you have the "packageManager" field defined.
+
+### Keyboard Shortcuts
+- **Why different shortcuts?** We use `Ctrl+Alt+R` for the script picker and `Ctrl+Alt+L` for running the last script to avoid VS Code's chord keybinding limitations. This ensures both commands work instantly without delays.
 
 ## 📄 License
 

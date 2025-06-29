@@ -59,6 +59,28 @@ describe('package.json configuration', () => {
     expect(firstKeybinding.mac).toBe('cmd+alt+r')
   })
 
+  test('should have runLastScript command with non-conflicting keybinding', () => {
+    const contributes = packageJson.contributes as Record<string, unknown>
+
+    // Check command is registered
+    const commands = contributes.commands as Array<Record<string, string>>
+    const runLastScriptCommand = commands.find(
+      (cmd) => cmd.command === 'vscode-package-json-script-runner.runLastScript'
+    )
+    expect(runLastScriptCommand).toBeDefined()
+    expect(runLastScriptCommand?.title).toBe('Run Last Package Script')
+    expect(runLastScriptCommand?.category).toBe('Package Scripts')
+
+    // Check keybinding doesn't conflict with main command
+    const keybindings = contributes.keybindings as Array<Record<string, string>>
+    const runLastScriptKeybinding = keybindings.find(
+      (kb) => kb.command === 'vscode-package-json-script-runner.runLastScript'
+    )
+    expect(runLastScriptKeybinding).toBeDefined()
+    expect(runLastScriptKeybinding?.key).toBe('ctrl+alt+l')
+    expect(runLastScriptKeybinding?.mac).toBe('cmd+alt+l')
+  })
+
   test('should target compatible VS Code engine version', () => {
     const engines = packageJson.engines as Record<string, string>
     expect(engines.vscode).toBe('^1.85.0')
