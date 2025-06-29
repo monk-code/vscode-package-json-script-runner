@@ -3,6 +3,7 @@ import * as vscode from 'vscode'
 
 import type { PackageInfo } from '#/types/package-info.js'
 import type { ScriptQuickPickItem } from '#/types/script-quick-pick-item.js'
+import type { RecentCommandsManager } from '#/recent-commands/recent-commands-manager.js'
 
 import { showScriptPicker } from '#/script-quick-pick/show-script-picker.js'
 import { createTestQuickPick } from './test-helpers.js'
@@ -11,6 +12,20 @@ vi.mock('vscode', () => ({
   window: {
     createQuickPick: vi.fn(),
   },
+  QuickPickItemKind: {
+    Separator: -1,
+    Default: 0,
+  },
+}))
+
+vi.mock('#/recent-commands/recent-commands-manager.js', () => ({
+  RecentCommandsManager: vi.fn(() => ({
+    getValidatedRecentCommands: vi.fn().mockResolvedValue([]),
+  })),
+}))
+
+vi.mock('#/recent-commands/create-recent-quick-pick-items.js', () => ({
+  createRecentQuickPickItems: vi.fn().mockReturnValue([]),
 }))
 
 // Helper to wait for async QuickPick updates
@@ -934,5 +949,150 @@ describe('showScriptPicker', () => {
     expect(currentItems).toHaveLength(1)
     expect(currentItems[0].scriptName).toBe('build')
     expect(currentItems[0].packageName).toBe('@test/mobile-app')
+  })
+
+  describe('with recent commands', () => {
+    test('shows recent commands when manager is provided', async () => {
+      const { createRecentQuickPickItems } = await import(
+        '#/recent-commands/create-recent-quick-pick-items.js'
+      )
+      const testHelpers = createTestQuickPick()
+      const quickPick = testHelpers.quickPick
+      vi.mocked(vscode.window.createQuickPick).mockReturnValue(quickPick)
+
+      const mockRecentCommands = [
+        {
+          scriptName: 'test',
+          packageName: 'core',
+          packagePath: './packages/core',
+          scriptCommand: 'vitest',
+          timestamp: Date.now(),
+        },
+      ]
+
+      const mockRecentItems = [
+        {
+          label: '$(history) test (core)',
+          description: '2 minutes ago',
+          detail: 'vitest',
+          scriptName: 'test',
+          packageName: 'core',
+          packagePath: './packages/core',
+          scriptCommand: 'vitest',
+        },
+        { label: '', kind: vscode.QuickPickItemKind.Separator },
+      ]
+
+      const mockRecentCommandsManager = {
+        getValidatedRecentCommands: vi
+          .fn()
+          .mockResolvedValue(mockRecentCommands),
+      } as unknown as RecentCommandsManager
+
+      vi.mocked(createRecentQuickPickItems).mockReturnValue(mockRecentItems)
+
+      const promise = showScriptPicker(
+        mockPackages,
+        '/workspace',
+        mockRecentCommandsManager
+      )
+
+      // Wait for async recent commands loading
+      await waitForQuickPickUpdate()
+
+      // Should show recent items along with all items when no search
+      const currentItems = quickPick.items as ScriptQuickPickItem[]
+      expect(currentItems.length).toBe(mockRecentItems.length + 9) // 2 recent + 9 regular
+      expect(currentItems[0]).toEqual(mockRecentItems[0])
+      expect(currentItems[1]).toEqual(mockRecentItems[1])
+
+      testHelpers.triggerHide()
+      await promise
+    })
+
+    test('hides recent commands when searching', async () => {
+      const { createRecentQuickPickItems } = await import(
+        '#/recent-commands/create-recent-quick-pick-items.js'
+      )
+      const testHelpers = createTestQuickPick()
+      const quickPick = testHelpers.quickPick
+      vi.mocked(vscode.window.createQuickPick).mockReturnValue(quickPick)
+
+      const mockRecentItems = [
+        {
+          label: '$(history) test (core)',
+          description: '2 minutes ago',
+          detail: 'vitest',
+          scriptName: 'test',
+          packageName: 'core',
+          packagePath: './packages/core',
+          scriptCommand: 'vitest',
+        },
+        { label: '', kind: vscode.QuickPickItemKind.Separator },
+      ]
+
+      const mockRecentCommandsManager = {
+        getValidatedRecentCommands: vi.fn().mockResolvedValue([]),
+      } as unknown as RecentCommandsManager
+
+      vi.mocked(createRecentQuickPickItems).mockReturnValue(mockRecentItems)
+
+      showScriptPicker(mockPackages, '/workspace', mockRecentCommandsManager)
+
+      // Trigger value change
+      const changeHandler = vi.mocked(quickPick.onDidChangeValue).mock
+        .calls[0][0]
+      changeHandler('build')
+      await waitForQuickPickUpdate()
+
+      // Should not include recent items when searching
+      const currentItems = quickPick.items as ScriptQuickPickItem[]
+      expect(
+        currentItems.every((item) => !item.label.includes('$(history)'))
+      ).toBe(true)
+    })
+
+    test('works without recent commands manager (backward compatibility)', async () => {
+      const testHelpers = createTestQuickPick()
+      const quickPick = testHelpers.quickPick
+      vi.mocked(vscode.window.createQuickPick).mockReturnValue(quickPick)
+
+      const promise = showScriptPicker(mockPackages)
+
+      // Should show all items without recent section
+      const currentItems = quickPick.items as ScriptQuickPickItem[]
+      expect(currentItems.length).toBe(9) // Just the regular items
+
+      testHelpers.triggerHide()
+      await promise
+    })
+
+    test('handles recent commands manager errors gracefully', async () => {
+      const testHelpers = createTestQuickPick()
+      const quickPick = testHelpers.quickPick
+      vi.mocked(vscode.window.createQuickPick).mockReturnValue(quickPick)
+
+      const mockRecentCommandsManager = {
+        getValidatedRecentCommands: vi
+          .fn()
+          .mockRejectedValue(new Error('Storage error')),
+      } as unknown as RecentCommandsManager
+
+      const promise = showScriptPicker(
+        mockPackages,
+        '/workspace',
+        mockRecentCommandsManager
+      )
+
+      // Wait for async error handling
+      await waitForQuickPickUpdate()
+
+      // Should still show all regular items
+      const currentItems = quickPick.items as ScriptQuickPickItem[]
+      expect(currentItems.length).toBe(9) // Just the regular items
+
+      testHelpers.triggerHide()
+      await promise
+    })
   })
 })

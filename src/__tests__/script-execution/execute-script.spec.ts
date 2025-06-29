@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 import type { PackageManager } from '#/package-manager/package-manager-types.js'
 import type { SelectedScript } from '#/types/selected-script.js'
+import type { RecentCommandsManager } from '#/recent-commands/recent-commands-manager.js'
 
 // Mock the sub-modules
 vi.mock('#/package-manager/detect-package-manager.js', () => ({
@@ -18,6 +19,12 @@ vi.mock('#/script-execution/terminal-manager.js', () => ({
 
 vi.mock('#/utils/error-handling.js', () => ({
   formatUserError: vi.fn(),
+}))
+
+vi.mock('#/recent-commands/recent-commands-manager.js', () => ({
+  RecentCommandsManager: vi.fn(() => ({
+    addRecentCommand: vi.fn().mockResolvedValue(undefined),
+  })),
 }))
 
 describe('executeScript', () => {
@@ -365,6 +372,158 @@ describe('executeScript', () => {
         '@test/ui-components',
         script.packagePath
       )
+    })
+  })
+
+  describe('with recent commands', () => {
+    test('saves to recent commands when manager is provided', async () => {
+      const { executeScript } = await import(
+        '#/script-execution/execute-script.js'
+      )
+      const { detectPackageManager } = await import(
+        '#/package-manager/detect-package-manager.js'
+      )
+      const { generateCommand } = await import(
+        '#/script-execution/generate-command.js'
+      )
+      const { createAndExecuteInTerminal } = await import(
+        '#/script-execution/terminal-manager.js'
+      )
+
+      const script = createSelectedScript()
+      const workspacePath = '/workspace'
+      const mockRecentCommandsManager = {
+        addRecentCommand: vi.fn().mockResolvedValue(undefined),
+      } as unknown as RecentCommandsManager
+
+      vi.mocked(detectPackageManager).mockResolvedValue(
+        'pnpm' as PackageManager
+      )
+      vi.mocked(generateCommand).mockResolvedValue(
+        'pnpm --filter @test/ui-components build'
+      )
+      vi.mocked(createAndExecuteInTerminal).mockResolvedValue()
+
+      await executeScript(script, workspacePath, mockRecentCommandsManager)
+
+      expect(mockRecentCommandsManager.addRecentCommand).toHaveBeenCalledWith({
+        scriptName: script.scriptName,
+        packageName: script.packageName,
+        packagePath: script.packagePath,
+        scriptCommand: script.scriptCommand,
+        timestamp: expect.any(Number),
+      })
+    })
+
+    test('includes workspace folder when provided', async () => {
+      const { executeScript } = await import(
+        '#/script-execution/execute-script.js'
+      )
+      const { detectPackageManager } = await import(
+        '#/package-manager/detect-package-manager.js'
+      )
+      const { generateCommand } = await import(
+        '#/script-execution/generate-command.js'
+      )
+      const { createAndExecuteInTerminal } = await import(
+        '#/script-execution/terminal-manager.js'
+      )
+
+      const script = createSelectedScript()
+      const workspacePath = '/workspace'
+      const workspaceFolder = '/workspace/main'
+      const mockRecentCommandsManager = {
+        addRecentCommand: vi.fn().mockResolvedValue(undefined),
+      } as unknown as RecentCommandsManager
+
+      vi.mocked(detectPackageManager).mockResolvedValue(
+        'pnpm' as PackageManager
+      )
+      vi.mocked(generateCommand).mockResolvedValue(
+        'pnpm --filter @test/ui-components build'
+      )
+      vi.mocked(createAndExecuteInTerminal).mockResolvedValue()
+
+      await executeScript(
+        script,
+        workspacePath,
+        mockRecentCommandsManager,
+        workspaceFolder
+      )
+
+      expect(mockRecentCommandsManager.addRecentCommand).toHaveBeenCalledWith({
+        scriptName: script.scriptName,
+        packageName: script.packageName,
+        packagePath: script.packagePath,
+        scriptCommand: script.scriptCommand,
+        timestamp: expect.any(Number),
+        workspaceFolder: workspaceFolder,
+      })
+    })
+
+    test('does not fail if recent commands manager fails', async () => {
+      const { executeScript } = await import(
+        '#/script-execution/execute-script.js'
+      )
+      const { detectPackageManager } = await import(
+        '#/package-manager/detect-package-manager.js'
+      )
+      const { generateCommand } = await import(
+        '#/script-execution/generate-command.js'
+      )
+      const { createAndExecuteInTerminal } = await import(
+        '#/script-execution/terminal-manager.js'
+      )
+
+      const script = createSelectedScript()
+      const workspacePath = '/workspace'
+      const mockRecentCommandsManager = {
+        addRecentCommand: vi.fn().mockRejectedValue(new Error('Storage error')),
+      } as unknown as RecentCommandsManager
+
+      vi.mocked(detectPackageManager).mockResolvedValue(
+        'pnpm' as PackageManager
+      )
+      vi.mocked(generateCommand).mockResolvedValue(
+        'pnpm --filter @test/ui-components build'
+      )
+      vi.mocked(createAndExecuteInTerminal).mockResolvedValue()
+
+      await expect(
+        executeScript(script, workspacePath, mockRecentCommandsManager)
+      ).resolves.not.toThrow()
+
+      expect(mockRecentCommandsManager.addRecentCommand).toHaveBeenCalled()
+    })
+
+    test('works without recent commands manager (backward compatibility)', async () => {
+      const { executeScript } = await import(
+        '#/script-execution/execute-script.js'
+      )
+      const { detectPackageManager } = await import(
+        '#/package-manager/detect-package-manager.js'
+      )
+      const { generateCommand } = await import(
+        '#/script-execution/generate-command.js'
+      )
+      const { createAndExecuteInTerminal } = await import(
+        '#/script-execution/terminal-manager.js'
+      )
+
+      const script = createSelectedScript()
+      const workspacePath = '/workspace'
+
+      vi.mocked(detectPackageManager).mockResolvedValue(
+        'pnpm' as PackageManager
+      )
+      vi.mocked(generateCommand).mockResolvedValue(
+        'pnpm --filter @test/ui-components build'
+      )
+      vi.mocked(createAndExecuteInTerminal).mockResolvedValue()
+
+      await expect(executeScript(script, workspacePath)).resolves.not.toThrow()
+
+      expect(createAndExecuteInTerminal).toHaveBeenCalled()
     })
   })
 })

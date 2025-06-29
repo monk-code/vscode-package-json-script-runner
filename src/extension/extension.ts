@@ -1,5 +1,6 @@
 import * as vscode from 'vscode'
 import { discoverPackages } from '#/package-discovery/discover-packages.js'
+import { RecentCommandsManager } from '#/recent-commands/recent-commands-manager.js'
 import { executeScript } from '#/script-execution/execute-script.js'
 import { showScriptPicker } from '#/script-quick-pick/show-script-picker.js'
 import type { PackageInfo } from '#/types/package-info.js'
@@ -8,6 +9,7 @@ import { formatUserError } from '#/utils/error-handling.js'
 
 export const activate = (context: vscode.ExtensionContext): void => {
   let isExecuting = false
+  const recentCommandsManager = new RecentCommandsManager(context)
 
   const disposable = vscode.commands.registerCommand(
     'vscode-package-json-script-runner.runScript',
@@ -40,7 +42,11 @@ export const activate = (context: vscode.ExtensionContext): void => {
 
         let selectedScript: SelectedScript | undefined
         try {
-          selectedScript = await showScriptPicker(packages)
+          selectedScript = await showScriptPicker(
+            packages,
+            workspaceFolders[0].uri.fsPath,
+            recentCommandsManager
+          )
         } catch (error) {
           vscode.window.showErrorMessage(
             formatUserError(error, 'selecting script')
@@ -50,7 +56,12 @@ export const activate = (context: vscode.ExtensionContext): void => {
 
         if (selectedScript) {
           try {
-            await executeScript(selectedScript, workspaceFolders[0].uri.fsPath)
+            await executeScript(
+              selectedScript,
+              workspaceFolders[0].uri.fsPath,
+              recentCommandsManager,
+              workspaceFolders[0].uri.fsPath
+            )
           } catch (error) {
             vscode.window.showErrorMessage(
               formatUserError(error, 'executing script')

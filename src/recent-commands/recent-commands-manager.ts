@@ -60,17 +60,20 @@ export class RecentCommandsManager {
     const stored = this.context.workspaceState.get<
       RecentCommandsStorage | RecentCommand[]
     >(STORAGE_KEY)
+    console.log('getStorageData - Stored value:', stored)
 
     if (!stored) {
+      console.log('getStorageData - No stored data, returning empty storage.')
       return this.createEmptyStorage()
     }
 
     if (Array.isArray(stored)) {
+      console.log('getStorageData - Migrating unversioned data.')
       const migrated = this.migrateFromUnversioned(stored)
       await this.updateStorage(migrated)
       return migrated
     }
-
+    console.log('getStorageData - Returning stored data:', stored)
     return stored
   }
 
@@ -97,6 +100,7 @@ export class RecentCommandsManager {
   }
 
   private async updateStorage(storage: RecentCommandsStorage): Promise<void> {
+    console.log('updateStorage - Updating storage with:', storage)
     await this.context.workspaceState.update(STORAGE_KEY, storage)
   }
 

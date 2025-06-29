@@ -12,7 +12,7 @@ vi.mock('#/script-execution/terminal-manager.js', () => ({
 }))
 vi.mock('#/recent-commands/recent-commands-manager.js')
 
-describe('executeScript with recent commands tracking', () => {
+describe('executeScript with recent commands tracking (legacy tests)', () => {
   let mockRecentCommandsManager: RecentCommandsManager
   const workspacePath = '/workspace'
 
@@ -37,15 +37,11 @@ describe('executeScript with recent commands tracking', () => {
       packagePath: './packages/core',
     }
 
-    const executeScriptWithRecent = await import(
+    const { executeScript } = await import(
       '#/script-execution/execute-script.js'
-    ).then((m) => m.executeScriptWithRecent)
-
-    await executeScriptWithRecent(
-      script,
-      workspacePath,
-      mockRecentCommandsManager
     )
+
+    await executeScript(script, workspacePath, mockRecentCommandsManager)
 
     // Wait for async save to complete
     await new Promise((resolve) => setImmediate(resolve))
@@ -67,11 +63,11 @@ describe('executeScript with recent commands tracking', () => {
       packagePath: './packages/core',
     }
 
-    const executeScriptWithRecent = await import(
+    const { executeScript } = await import(
       '#/script-execution/execute-script.js'
-    ).then((m) => m.executeScriptWithRecent)
+    )
 
-    await executeScriptWithRecent(
+    await executeScript(
       script,
       workspacePath,
       mockRecentCommandsManager,
@@ -108,11 +104,11 @@ describe('executeScript with recent commands tracking', () => {
       addPromise
     )
 
-    const executeScriptWithRecent = await import(
+    const { executeScript } = await import(
       '#/script-execution/execute-script.js'
-    ).then((m) => m.executeScriptWithRecent)
+    )
 
-    const executePromise = executeScriptWithRecent(
+    const executePromise = executeScript(
       script,
       workspacePath,
       mockRecentCommandsManager
@@ -140,15 +136,11 @@ describe('executeScript with recent commands tracking', () => {
       new Error('Storage error')
     )
 
-    const executeScriptWithRecent = await import(
+    const { executeScript } = await import(
       '#/script-execution/execute-script.js'
-    ).then((m) => m.executeScriptWithRecent)
-
-    await executeScriptWithRecent(
-      script,
-      workspacePath,
-      mockRecentCommandsManager
     )
+
+    await executeScript(script, workspacePath, mockRecentCommandsManager)
 
     expect(createAndExecuteInTerminal).toHaveBeenCalled()
 

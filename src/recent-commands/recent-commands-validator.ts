@@ -10,6 +10,7 @@ export const validateRecentCommands = async (
   commands: RecentCommand[],
   workspaceRoot: string
 ): Promise<RecentCommand[]> => {
+  console.log('validateRecentCommands - Initial commands:', commands)
   if (commands.length === 0) {
     return []
   }
@@ -19,7 +20,9 @@ export const validateRecentCommands = async (
   )
 
   const results = await Promise.all(validationPromises)
-  return results.filter(isValidCommand)
+  const validated = results.filter(isValidCommand)
+  console.log('validateRecentCommands - Validated commands:', validated)
+  return validated
 }
 
 const validateSingleCommand = async (

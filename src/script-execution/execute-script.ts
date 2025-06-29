@@ -8,7 +8,9 @@ import type { RecentCommand } from '#/types/recent-command.js'
 
 export const executeScript = async (
   script: SelectedScript,
-  workspacePath: string
+  workspacePath: string,
+  recentCommandsManager?: RecentCommandsManager,
+  workspaceFolder?: string
 ): Promise<void> => {
   let packageManager: Awaited<ReturnType<typeof detectPackageManager>>
   let command: string
@@ -37,18 +39,11 @@ export const executeScript = async (
     const formattedError = formatUserError(error, 'executing script')
     throw new Error(formattedError)
   }
-}
 
-export const executeScriptWithRecent = async (
-  script: SelectedScript,
-  workspacePath: string,
-  recentCommandsManager: RecentCommandsManager,
-  workspaceFolder?: string
-): Promise<void> => {
-  await executeScript(script, workspacePath)
-
-  const recentCommand = createRecentCommand(script, workspaceFolder)
-  saveRecentCommandAsync(recentCommandsManager, recentCommand)
+  if (recentCommandsManager) {
+    const recentCommand = createRecentCommand(script, workspaceFolder)
+    saveRecentCommandAsync(recentCommandsManager, recentCommand)
+  }
 }
 
 const createRecentCommand = (

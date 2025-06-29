@@ -50,6 +50,7 @@
     "format": "biome format .",
     "format:fix": "biome format --write .",
     "validate": "run-s types:check lint format test build",
+    "quick-fix": "run-p lint:fix format:fix",
     "quick-validate": "run-s lint format",
     "ci": "run-s types:check lint format test build",
     "pretest": "pnpm build",

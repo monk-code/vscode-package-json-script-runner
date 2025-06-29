@@ -42,6 +42,13 @@ vi.mock('#/utils/error-handling.js', () => ({
   formatUserError: vi.fn(),
 }))
 
+vi.mock('#/recent-commands/recent-commands-manager.js', () => ({
+  RecentCommandsManager: vi.fn(() => ({
+    getValidatedRecentCommands: vi.fn().mockResolvedValue([]),
+    addRecentCommand: vi.fn().mockResolvedValue(undefined),
+  })),
+}))
+
 vi.mock('#/script-execution/execute-script.js', () => ({
   executeScript: vi.fn(),
 }))
@@ -88,6 +95,17 @@ describe('Extension', () => {
       activate(mockContext)
 
       expect(mockContext.subscriptions).toContain(mockDisposable)
+    })
+
+    test('creates RecentCommandsManager with extension context', async () => {
+      const { activate } = await import('#/extension/extension.js')
+      const { RecentCommandsManager } = await import(
+        '#/recent-commands/recent-commands-manager.js'
+      )
+
+      activate(mockContext)
+
+      expect(RecentCommandsManager).toHaveBeenCalledWith(mockContext)
     })
   })
 
@@ -164,7 +182,7 @@ describe('Extension', () => {
       expect(discoverPackages).toHaveBeenCalledTimes(1)
     })
 
-    test('shows script picker with discovered packages', async () => {
+    test('shows script picker with discovered packages and recent commands', async () => {
       const { activate } = await import('#/extension/extension.js')
       const { discoverPackages } = await import(
         '#/package-discovery/discover-packages.js'
@@ -190,7 +208,14 @@ describe('Extension', () => {
       const commandHandler = getCommandHandler()
       await commandHandler()
 
-      expect(showScriptPicker).toHaveBeenCalledWith(mockPackages)
+      expect(showScriptPicker).toHaveBeenCalledWith(
+        mockPackages,
+        '/test/path',
+        expect.objectContaining({
+          getValidatedRecentCommands: expect.any(Function),
+          addRecentCommand: expect.any(Function),
+        })
+      )
     })
 
     test('shows script picker even when no packages are discovered', async () => {
@@ -211,10 +236,17 @@ describe('Extension', () => {
       const commandHandler = getCommandHandler()
       await commandHandler()
 
-      expect(showScriptPicker).toHaveBeenCalledWith([])
+      expect(showScriptPicker).toHaveBeenCalledWith(
+        [],
+        '/test/path',
+        expect.objectContaining({
+          getValidatedRecentCommands: expect.any(Function),
+          addRecentCommand: expect.any(Function),
+        })
+      )
     })
 
-    test('executes script when script is selected', async () => {
+    test('executes script with recent when script is selected', async () => {
       const { activate } = await import('#/extension/extension.js')
       const { discoverPackages } = await import(
         '#/package-discovery/discover-packages.js'
@@ -243,7 +275,15 @@ describe('Extension', () => {
       const commandHandler = getCommandHandler()
       await commandHandler()
 
-      expect(executeScript).toHaveBeenCalledWith(selectedScript, '/test/path')
+      expect(executeScript).toHaveBeenCalledWith(
+        selectedScript,
+        '/test/path',
+        expect.objectContaining({
+          getValidatedRecentCommands: expect.any(Function),
+          addRecentCommand: expect.any(Function),
+        }),
+        '/test/path'
+      )
       expect(mockWindow.showInformationMessage).not.toHaveBeenCalled()
     })
 
