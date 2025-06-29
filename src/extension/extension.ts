@@ -2,6 +2,7 @@ import * as vscode from 'vscode'
 import { discoverPackages } from '#/package-discovery/discover-packages.js'
 import { RecentCommandsManager } from '#/recent-commands/recent-commands-manager.js'
 import { executeScript } from '#/script-execution/execute-script.js'
+import { disposeTerminalManager } from '#/script-execution/terminal-manager.js'
 import { showScriptPicker } from '#/script-quick-pick/show-script-picker.js'
 import type { PackageInfo } from '#/types/package-info.js'
 import type { SelectedScript } from '#/types/selected-script.js'
@@ -77,4 +78,6 @@ export const activate = (context: vscode.ExtensionContext): void => {
   context.subscriptions.push(disposable)
 }
 
-export const deactivate = (): void => {}
+export const deactivate = (): void => {
+  disposeTerminalManager()
+}

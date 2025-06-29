@@ -36,7 +36,41 @@
         "key": "ctrl+shift+r",
         "mac": "cmd+shift+r"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Package.json Script Runner",
+      "properties": {
+        "packageJsonScriptRunner.terminalReuseStrategy": {
+          "type": "string",
+          "default": "per-package",
+          "enum": [
+            "none",
+            "per-package",
+            "per-workspace",
+            "single"
+          ],
+          "enumDescriptions": [
+            "Always create a new terminal for each command",
+            "Reuse one terminal per package (recommended)",
+            "Reuse one terminal per workspace",
+            "Reuse a single terminal for all commands"
+          ],
+          "description": "How terminals should be reused when running scripts"
+        },
+        "packageJsonScriptRunner.clearTerminalBeforeReuse": {
+          "type": "boolean",
+          "default": true,
+          "description": "Clear the terminal before running a new command when reusing terminals"
+        },
+        "packageJsonScriptRunner.maxTerminals": {
+          "type": "number",
+          "default": 10,
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Maximum number of terminals to keep in the pool (only applies when terminal reuse is enabled)"
+        }
+      }
+    }
   },
   "scripts": {
     "prebuild": "rimraf dist",

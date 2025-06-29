@@ -53,6 +53,10 @@ vi.mock('#/script-execution/execute-script.js', () => ({
   executeScript: vi.fn(),
 }))
 
+vi.mock('#/script-execution/terminal-manager.js', () => ({
+  disposeTerminalManager: vi.fn(),
+}))
+
 describe('Extension', () => {
   let mockContext: vscode.ExtensionContext
 
@@ -493,6 +497,17 @@ describe('Extension', () => {
 
       expect(deactivate).toBeDefined()
       expect(typeof deactivate).toBe('function')
+    })
+
+    test('disposes terminal manager on deactivation', async () => {
+      const { deactivate } = await import('#/extension/extension.js')
+      const { disposeTerminalManager } = await import(
+        '#/script-execution/terminal-manager.js'
+      )
+
+      deactivate()
+
+      expect(disposeTerminalManager).toHaveBeenCalled()
     })
 
     test('deactivate function runs without error', async () => {

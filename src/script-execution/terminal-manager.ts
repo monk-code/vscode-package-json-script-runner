@@ -1,22 +1,12 @@
-import * as vscode from 'vscode'
+import { TerminalPoolManager } from '../terminal/terminal-pool-manager.js'
 
-const MAX_TERMINAL_NAME_LENGTH = 80
+let poolManager: TerminalPoolManager | undefined
 
-const truncateTerminalName = (name: string): string => {
-  if (name.length <= MAX_TERMINAL_NAME_LENGTH) {
-    return name
+const getPoolManager = (): TerminalPoolManager => {
+  if (!poolManager) {
+    poolManager = new TerminalPoolManager()
   }
-  return `${name.slice(0, MAX_TERMINAL_NAME_LENGTH - 3)}...`
-}
-
-const generateTerminalName = (
-  command: string,
-  packageName?: string
-): string => {
-  if (packageName?.trim()) {
-    return truncateTerminalName(`Script: ${packageName}`)
-  }
-  return truncateTerminalName(`Script: ${command}`)
+  return poolManager
 }
 
 export const createAndExecuteInTerminal = async (
@@ -24,13 +14,18 @@ export const createAndExecuteInTerminal = async (
   packageName: string | undefined,
   workingDirectory: string
 ): Promise<void> => {
-  const terminalName = generateTerminalName(command, packageName)
-
-  const terminal = vscode.window.createTerminal({
-    name: terminalName,
-    cwd: workingDirectory,
-  })
+  const manager = getPoolManager()
+  const terminal = manager.getOrCreateTerminal(
+    command,
+    packageName || '',
+    workingDirectory
+  )
 
   terminal.sendText(command)
   terminal.show()
+}
+
+export const disposeTerminalManager = (): void => {
+  poolManager?.dispose()
+  poolManager = undefined
 }

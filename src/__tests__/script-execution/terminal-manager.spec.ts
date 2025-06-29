@@ -1,17 +1,22 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { createMockTerminal } from '#/__tests__/test-utils/vscode-mocks.js'
 
-const mockWindow = {
-  createTerminal: vi.fn().mockReturnValue(createMockTerminal('test-terminal')),
-}
+const mockGetOrCreateTerminal = vi.fn()
+const mockDispose = vi.fn()
 
-vi.mock('vscode', () => ({
-  window: mockWindow,
+const mockTerminalPoolManager = vi.fn(() => ({
+  getOrCreateTerminal: mockGetOrCreateTerminal,
+  dispose: mockDispose,
+}))
+
+vi.mock('../../terminal/terminal-pool-manager.js', () => ({
+  TerminalPoolManager: mockTerminalPoolManager,
 }))
 
 describe('terminalManager', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockTerminalPoolManager.mockClear()
   })
 
   describe('createAndExecuteInTerminal', () => {
@@ -21,7 +26,7 @@ describe('terminalManager', () => {
       )
 
       const mockTerminal = createMockTerminal('test-terminal')
-      mockWindow.createTerminal.mockReturnValue(mockTerminal)
+      mockGetOrCreateTerminal.mockReturnValue(mockTerminal)
 
       await createAndExecuteInTerminal(
         'pnpm build',
@@ -29,10 +34,11 @@ describe('terminalManager', () => {
         '/workspace/packages/ui-components'
       )
 
-      expect(mockWindow.createTerminal).toHaveBeenCalledWith({
-        name: 'Script: @test/ui-components',
-        cwd: '/workspace/packages/ui-components',
-      })
+      expect(mockGetOrCreateTerminal).toHaveBeenCalledWith(
+        'pnpm build',
+        '@test/ui-components',
+        '/workspace/packages/ui-components'
+      )
     })
 
     test('creates terminal with script name when package name is empty', async () => {
@@ -41,7 +47,7 @@ describe('terminalManager', () => {
       )
 
       const mockTerminal = createMockTerminal('test-terminal')
-      mockWindow.createTerminal.mockReturnValue(mockTerminal)
+      mockGetOrCreateTerminal.mockReturnValue(mockTerminal)
 
       await createAndExecuteInTerminal(
         'npm run build',
@@ -49,10 +55,11 @@ describe('terminalManager', () => {
         '/workspace/packages/unnamed'
       )
 
-      expect(mockWindow.createTerminal).toHaveBeenCalledWith({
-        name: 'Script: npm run build',
-        cwd: '/workspace/packages/unnamed',
-      })
+      expect(mockGetOrCreateTerminal).toHaveBeenCalledWith(
+        'npm run build',
+        '',
+        '/workspace/packages/unnamed'
+      )
     })
 
     test('sends command to terminal', async () => {
@@ -61,7 +68,7 @@ describe('terminalManager', () => {
       )
 
       const mockTerminal = createMockTerminal('test-terminal')
-      mockWindow.createTerminal.mockReturnValue(mockTerminal)
+      mockGetOrCreateTerminal.mockReturnValue(mockTerminal)
 
       await createAndExecuteInTerminal(
         'pnpm --filter @test/ui-components build',
@@ -80,7 +87,7 @@ describe('terminalManager', () => {
       )
 
       const mockTerminal = createMockTerminal('test-terminal')
-      mockWindow.createTerminal.mockReturnValue(mockTerminal)
+      mockGetOrCreateTerminal.mockReturnValue(mockTerminal)
 
       await createAndExecuteInTerminal(
         'yarn workspace @test/ui-components build',
@@ -91,38 +98,13 @@ describe('terminalManager', () => {
       expect(mockTerminal.show).toHaveBeenCalled()
     })
 
-    test('handles long package names by truncating terminal name', async () => {
-      const { createAndExecuteInTerminal } = await import(
-        '#/script-execution/terminal-manager.js'
-      )
-
-      const mockTerminal = createMockTerminal('test-terminal')
-      mockWindow.createTerminal.mockReturnValue(mockTerminal)
-
-      const longPackageName =
-        '@very-long-organization-name/extremely-long-package-name-that-exceeds-reasonable-limits'
-
-      await createAndExecuteInTerminal(
-        'pnpm build',
-        longPackageName,
-        '/workspace/packages/long-name'
-      )
-
-      expect(mockWindow.createTerminal).toHaveBeenCalledWith({
-        name: expect.stringMatching(
-          /^Script: @very-long-organization-name\/extremely-long-package-name-that-exceeds\.\.\.$/
-        ),
-        cwd: '/workspace/packages/long-name',
-      })
-    })
-
     test('handles commands with special characters', async () => {
       const { createAndExecuteInTerminal } = await import(
         '#/script-execution/terminal-manager.js'
       )
 
       const mockTerminal = createMockTerminal('test-terminal')
-      mockWindow.createTerminal.mockReturnValue(mockTerminal)
+      mockGetOrCreateTerminal.mockReturnValue(mockTerminal)
 
       await createAndExecuteInTerminal(
         'npm run "build:prod" && echo "Build complete!"',
@@ -141,7 +123,7 @@ describe('terminalManager', () => {
       )
 
       const mockTerminal = createMockTerminal('test-terminal')
-      mockWindow.createTerminal.mockReturnValue(mockTerminal)
+      mockGetOrCreateTerminal.mockReturnValue(mockTerminal)
 
       await createAndExecuteInTerminal(
         'pnpm test',
@@ -149,10 +131,11 @@ describe('terminalManager', () => {
         '/workspace/packages/api-server'
       )
 
-      expect(mockWindow.createTerminal).toHaveBeenCalledWith({
-        name: 'Script: @test/api-server',
-        cwd: '/workspace/packages/api-server',
-      })
+      expect(mockGetOrCreateTerminal).toHaveBeenCalledWith(
+        'pnpm test',
+        '@test/api-server',
+        '/workspace/packages/api-server'
+      )
     })
   })
 
@@ -163,7 +146,7 @@ describe('terminalManager', () => {
       )
 
       const mockTerminal = createMockTerminal('test-terminal')
-      mockWindow.createTerminal.mockReturnValue(mockTerminal)
+      mockGetOrCreateTerminal.mockReturnValue(mockTerminal)
 
       await createAndExecuteInTerminal(
         '',
@@ -181,14 +164,15 @@ describe('terminalManager', () => {
       )
 
       const mockTerminal = createMockTerminal('test-terminal')
-      mockWindow.createTerminal.mockReturnValue(mockTerminal)
+      mockGetOrCreateTerminal.mockReturnValue(mockTerminal)
 
       await createAndExecuteInTerminal('npm run build', '@test/package', '')
 
-      expect(mockWindow.createTerminal).toHaveBeenCalledWith({
-        name: 'Script: @test/package',
-        cwd: '',
-      })
+      expect(mockGetOrCreateTerminal).toHaveBeenCalledWith(
+        'npm run build',
+        '@test/package',
+        ''
+      )
     })
 
     test('handles null or undefined package name', async () => {
@@ -197,15 +181,70 @@ describe('terminalManager', () => {
       )
 
       const mockTerminal = createMockTerminal('test-terminal')
-      mockWindow.createTerminal.mockReturnValue(mockTerminal)
+      mockGetOrCreateTerminal.mockReturnValue(mockTerminal)
 
       // Test with empty string to simulate missing package name
       await createAndExecuteInTerminal('npm run build', '', '/workspace')
 
-      expect(mockWindow.createTerminal).toHaveBeenCalledWith({
-        name: 'Script: npm run build',
-        cwd: '/workspace',
-      })
+      expect(mockGetOrCreateTerminal).toHaveBeenCalledWith(
+        'npm run build',
+        '',
+        '/workspace'
+      )
+    })
+  })
+
+  describe('disposeTerminalManager', () => {
+    test('disposes the terminal pool manager', async () => {
+      const { createAndExecuteInTerminal, disposeTerminalManager } =
+        await import('#/script-execution/terminal-manager.js')
+
+      const mockTerminal = createMockTerminal('test-terminal')
+      mockGetOrCreateTerminal.mockReturnValue(mockTerminal)
+
+      // Create a terminal to ensure the pool manager is initialized
+      await createAndExecuteInTerminal(
+        'npm test',
+        '@test/package',
+        '/workspace'
+      )
+
+      disposeTerminalManager()
+
+      expect(mockDispose).toHaveBeenCalled()
+    })
+
+    test('can create new terminals after disposal', async () => {
+      const { createAndExecuteInTerminal, disposeTerminalManager } =
+        await import('#/script-execution/terminal-manager.js')
+
+      const mockTerminal = createMockTerminal('test-terminal')
+      mockGetOrCreateTerminal.mockReturnValue(mockTerminal)
+
+      await createAndExecuteInTerminal(
+        'npm test',
+        '@test/package',
+        '/workspace'
+      )
+      disposeTerminalManager()
+
+      // Clear the mock to ensure a new instance is created
+      mockTerminalPoolManager.mockClear()
+      mockGetOrCreateTerminal.mockClear()
+      mockGetOrCreateTerminal.mockReturnValue(mockTerminal)
+
+      await createAndExecuteInTerminal(
+        'npm build',
+        '@test/package2',
+        '/workspace2'
+      )
+
+      expect(mockTerminalPoolManager).toHaveBeenCalledTimes(1)
+      expect(mockGetOrCreateTerminal).toHaveBeenCalledWith(
+        'npm build',
+        '@test/package2',
+        '/workspace2'
+      )
     })
   })
 })
