@@ -2,11 +2,14 @@
   "name": "@test/web-app",
   "version": "1.0.0",
   "scripts": {
-    "dev": "next dev",
+    "dev": "node -e \"console.log('Dev server running on http://localhost:3000'); setInterval(() => {}, 1000)\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "preview": "next build && next start"
+    "preview": "next build && next start",
+    "watch": "node -e \"console.log('Watching files for changes...'); setInterval(() => {}, 1000)\"",
+    "serve": "node -e \"console.log('Serving app on http://localhost:8080'); setInterval(() => {}, 1000)\"",
+    "test:watch": "node -e \"console.log('Running tests in watch mode...'); setInterval(() => {}, 1000)\""
   },
   "description": "Next.js web application"
 }

@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "scripts": {
     "build": "vite build",
-    "dev": "vite",
+    "dev": "node -e \"console.log('Vite dev server running on http://localhost:5173'); setInterval(() => {}, 1000)\"",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "storybook": "storybook dev"
+    "test:watch": "node -e \"console.log('Running component tests in watch mode...'); setInterval(() => {}, 1000)\"",
+    "storybook": "node -e \"console.log('Storybook running on http://localhost:6006'); setInterval(() => {}, 1000)\"",
+    "watch": "node -e \"console.log('Watching component files for changes...'); setInterval(() => {}, 1000)\"",
+    "serve": "node -e \"console.log('Serving component preview on http://localhost:4173'); setInterval(() => {}, 1000)\""
   },
   "description": "UI component library for the test monorepo"
 }

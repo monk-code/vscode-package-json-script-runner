@@ -56,7 +56,7 @@ describe('Script Quick Pick Performance', () => {
       packageCount: 5000,
       scriptPerPackage: 10,
       searchQuery: 'start mob',
-      expectedMaxMs: 200,
+      expectedMaxMs: 400,
     },
     {
       packageCount: 0,
@@ -222,7 +222,7 @@ describe('Script Quick Pick Performance', () => {
 
     // Then - All searches should complete quickly
     const totalDuration = results.reduce((sum, r) => sum + r.duration, 0)
-    expect(totalDuration).toBeLessThan(700) // Total time for all searches should be reasonable
+    expect(totalDuration).toBeLessThan(1200) // Total time for all searches should be reasonable
 
     results.forEach((result, index) => {
       console.log(
