@@ -11,7 +11,10 @@
     "dev": "pnpm --filter @pnpm-test/web dev",
     "lint": "pnpm -r lint",
     "clean": "pnpm -r clean",
-    "install:all": "pnpm install"
+    "install:all": "pnpm install",
+    "dev:all": "node -e \"console.log('Starting dev servers for all packages...'); setInterval(() => {}, 1000)\"",
+    "test:watch": "node -e \"console.log('Running tests in watch mode for all packages...'); setInterval(() => {}, 1000)\"",
+    "watch": "node -e \"console.log('Watching all workspace files for changes...'); setInterval(() => {}, 1000)\""
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

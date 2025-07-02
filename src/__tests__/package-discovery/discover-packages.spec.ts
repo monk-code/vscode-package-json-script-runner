@@ -69,7 +69,7 @@ describe('discoverPackages', () => {
     expect(packages[0].scripts).toEqual(
       expect.objectContaining({
         build: 'vite build',
-        dev: 'vite',
+        dev: expect.stringContaining('Vite dev server'),
         test: 'vitest run',
       })
     )

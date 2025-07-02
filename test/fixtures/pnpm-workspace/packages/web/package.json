@@ -6,10 +6,13 @@
     "start": "echo \"Starting web with pnpm\"",
     "test": "echo \"Testing web with pnpm\"",
     "build": "echo \"Building web with pnpm\"",
-    "dev": "echo \"Development mode with pnpm\"",
+    "dev": "node -e \"console.log('Web dev server running on http://localhost:3000'); setInterval(() => {}, 1000)\"",
     "lint": "echo \"Linting web with pnpm\"",
     "clean": "echo \"Cleaning web with pnpm\"",
-    "preview": "echo \"Preview with pnpm\""
+    "preview": "echo \"Preview with pnpm\"",
+    "test:watch": "node -e \"console.log('Running web tests in watch mode...'); setInterval(() => {}, 1000)\"",
+    "watch": "node -e \"console.log('Watching web files for changes...'); setInterval(() => {}, 1000)\"",
+    "serve": "node -e \"console.log('Serving web app on http://localhost:8080'); setInterval(() => {}, 1000)\""
   },
   "dependencies": {
     "@pnpm-test/core": "workspace:*"

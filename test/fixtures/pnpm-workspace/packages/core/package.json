@@ -6,6 +6,9 @@
     "test": "echo \"Testing core with pnpm\"",
     "build": "echo \"Building core with pnpm\"",
     "lint": "echo \"Linting core with pnpm\"",
-    "clean": "echo \"Cleaning core with pnpm\""
+    "clean": "echo \"Cleaning core with pnpm\"",
+    "dev": "node -e \"console.log('Core development watcher running...'); setInterval(() => {}, 1000)\"",
+    "test:watch": "node -e \"console.log('Running core tests in watch mode...'); setInterval(() => {}, 1000)\"",
+    "watch": "node -e \"console.log('Watching core files for changes...'); setInterval(() => {}, 1000)\""
   }
 }
